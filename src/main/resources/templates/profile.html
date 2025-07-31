@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="base::layout(~{::section})">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Added viewport meta -->
+    <title>EPITA - SOCIAL</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/images/logo.png}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+</head>
+<body class="bg-gray-100">
+<!-- Navigation -->
+
+
+<!-- Main Container -->
+<section class="flex max-w-7xl mx-auto pt-16 md:pt-20">
+    <!-- Left Sidebar - Desktop -->
+
+
+    <!-- Main Feed -->
+    <main class="flex-1 lg:ml-64 xl:mr-0 px-4 pb-20 md:pb-4">
+        <!-- Profile Page -->
+        <!-- Background Image -->
+        <div class="h-60 w-full relative">
+            <div class="h-60 w-full relative group">
+                <!-- Cover Image -->
+                <img id="coverImage"
+                     th:src="@{/api/v1/coverImage/{id}(id=${profile.profile_id})}"
+                     alt="Background"
+                     class="w-full h-full object-cover"
+                     onerror="this.onerror=null; this.src='/images/default-cover.jpg';">
+
+                <!-- "+" Button only shown if user matches -->
+                <label for="coverUploadInput"
+                       class="absolute bottom-0 right-0 w-12 h-7 bg-blue-500 text-white flex items-center justify-center text-xs border-2 border-white   cursor-pointer"
+                       th:if="${user != null and user.userId == profile.user.userId}">
+                    <i class="fas fa-pencil"></i> Edit
+                </label>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="coverUploadInput" accept="image/*" class="hidden">
+            </div>
+
+            <!-- Profile Picture -->
+            <div class="absolute bottom-[-40px] left-8">
+                <img th:src="@{/api/v1/image/{id}(id=${profile.profile_id})}"
+                     alt="Profile"
+                     class="w-24 h-24 rounded-full border-4 border-white object-cover shadow-lg">
+<!--                <div class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs border-2 border-white"-->
+<!--                     th:if="${user != null and user.userId == profile.user.userId}">-->
+<!--                    +-->
+<!--                </div>-->
+                <label for="profileUploadInput"
+                       class="absolute bottom-0 right-0 w-7 h-7 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs border-2 border-white cursor-pointer"
+                       th:if="${user != null and user.userId == profile.user.userId}">
+                    +
+                </label>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="profileUploadInput" accept="image/*" class="hidden">
+            </div>
+        </div>
+
+        <!-- Profile Info -->
+        <div class="mt-16 px-8 flex flex-col md:flex-row md:items-center justify-between">
+            <div>
+                <div class="flex items-center justify-between space-x-4">
+                    <h2 class="text-2xl font-bold" th:text="${profile.username}">@username</h2>
+                    <button id="follow-button" th:if="${follow_btn}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">Follow</button>
+                </div>
+
+                <p class="text-gray-600 mt-1" th:text="${profile.profile_bio}">User bio goes here...</p>
+            </div>
+            <div class="flex gap-4 mt-4 md:mt-0">
+                <!-- Follower/Following Counts -->
+                <div class="text-center">
+                    <p class="text-lg font-bold" th:text="${profile.followers.size()}">0</p>
+                    <p class="text-sm text-gray-500">Followers</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-lg font-bold" th:text="${profile.following.size()}">0</p>
+                    <p class="text-sm text-gray-500">Following</p>
+                </div>
+                <input id="profile_id" type="text" th:value="${profile.profile_id}" class="hidden"/>
+                <div>
+                    <button id="follow-button1" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+                            th:if="${isCurrentUser == false}">
+                        Follow
+                    </button>
+                </div>
+
+                <div>
+                    <a th:href="@{/profile/edit}"
+                       th:if="${isCurrentUser == true}"
+                       class="px-4 py-2 bg-gray-200 rounded-xl text-gray-800 hover:bg-gray-300">
+                        Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Tabs -->
+        <div class="mt-8 px-8 border-b border-gray-300 flex gap-8 text-gray-500 font-medium">
+            <a href="javascript:void(0)" data-tab="posts"
+               class="pb-2 border-b-2 border-blue-500 text-blue-600">Posts</a>
+            <a href="javascript:void(0)" data-tab="saved"
+               class="pb-2 border-b-2 border-transparent hover:border-blue-500">Saved</a>
+            <a href="javascript:void(0)" data-tab="tagged"
+               class="pb-2 border-b-2 border-transparent hover:border-blue-500">Tagged</a>
+        </div>
+
+        <!-- Post Grid -->
+        <div id="posts" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8">
+            <article th:each="post : ${profile.posts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <img th:src="${post.image}" alt="Post"
+                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div class="px-4 pb-4">
+                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <div class="flex items-center gap-6 mb-3">
+                        <button onclick="toggleLike(this)"
+                                class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
+                            <i class="far fa-heart text-lg"></i>
+                            <span class="text-sm" th:text="${post.getLiked().size()}"></span>
+                        </button>
+                        <button onclick="toggleComments('comments1')"
+                                class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
+                            <i class="far fa-comment text-lg"></i>
+                            <span class="text-sm" th:text="${post.getComments().size()}">5</span>
+                        </button>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                            <i class="far fa-share-square text-lg"></i>
+                            <span class="text-sm">Share</span>
+                        </button>
+                    </div>
+                    <div id="comments1" class="hidden border-t border-gray-100 pt-3">
+                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                            <div class="mt-4">
+                                <p class="font-semibold text-gray-700">Comments:</p>
+                                <div th:if="${#lists.isEmpty(post.comments)}">
+                                    <p class="text-gray-400 text-sm">No comments yet.</p>
+                                </div>
+                                <div th:each="comment : ${post.comments}"
+                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
+                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
+                                         alt="User" class="w-8 h-8 rounded-full object-cover">
+                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment text</p>
+                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Add a comment..."
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- Saved Posts -->
+        <div id="saved" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8 hidden">
+
+
+            <article th:each="post : ${profile.savedPosts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img th:src="@{/api/v1/image/{id}(id = ${post.profile_id})}" alt="User"
+                             class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">omprakash</h3>
+                            <p class="text-sm text-gray-500">2 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+                <img th:src="${post.image}" alt="Post"
+                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div class="px-4 pb-4">
+                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <div class="flex items-center gap-6 mb-3">
+                        <button onclick="toggleLike(this)"
+                                class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
+                            <i class="far fa-heart text-lg"></i>
+                            <span class="text-sm" th:text="${post.getLiked().size()}"></span>
+                        </button>
+                        <button onclick="toggleComments('comments2')"
+                                class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
+                            <i class="far fa-comment text-lg"></i>
+                            <span class="text-sm" th:text="${post.getComments().size()}">5</span>
+                        </button>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                            <i class="far fa-share-square text-lg"></i>
+                            <span class="text-sm">Share</span>
+                        </button>
+                    </div>
+                    <div id="comments2" class="hidden border-t border-gray-100 pt-3">
+                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                            <div class="mt-4">
+                                <p class="font-semibold text-gray-700">Comments:</p>
+                                <div th:if="${#lists.isEmpty(post.comments)}">
+                                    <p class="text-gray-400 text-sm">No comments yet.</p>
+                                </div>
+                                <div th:each="comment : ${post.comments}"
+                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
+                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
+                                         alt="User" class="w-8 h-8 rounded-full object-cover">
+                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment
+                                        text</p>
+                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Add a comment..."
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+
+        <!-- Tagged Posts -->
+        <div id="tagged" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8 hidden">
+
+            <article th:each="post : ${profile.taggedPosts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img th:src="@{/api/v1/image/{id}(id = ${post.profile_id})}" alt="User"
+                             class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">omprakash</h3>
+                            <p class="text-sm text-gray-500">2 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+
+                <img th:src="${post.image}" alt="Post"
+                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div class="px-4 pb-4">
+                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <div class="flex items-center gap-6 mb-3">
+                        <button onclick="toggleLike(this)"
+                                class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
+                            <i class="far fa-heart text-lg"></i>
+                            <span class="text-sm" th:text="${post.getLiked().size()}"></span>
+                        </button>
+                        <button onclick="toggleComments('comments3')"
+                                class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
+                            <i class="far fa-comment text-lg"></i>
+                            <span class="text-sm" th:text="${post.getComments().size()}">5</span>
+                        </button>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                            <i class="far fa-share-square text-lg"></i>
+                            <span class="text-sm">Share</span>
+                        </button>
+                    </div>
+                    <div id="comments3" class="hidden border-t border-gray-100 pt-3">
+                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                            <div class="mt-4">
+                                <p class="font-semibold text-gray-700">Comments:</p>
+                                <div th:if="${#lists.isEmpty(post.comments)}">
+                                    <p class="text-gray-400 text-sm">No comments yet.</p>
+                                </div>
+                                <div th:each="comment : ${post.comments}"
+                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
+                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
+                                         alt="User" class="w-8 h-8 rounded-full object-cover">
+                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment
+                                        text</p>
+                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" placeholder="Add a comment..."
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+    <!-- Post Modal -->
+    <div id="postModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-md w-full max-w-md p-4">
+            <!-- Header -->
+            <div class="text-lg font-semibold mb-4">Create post</div>
+
+            <!-- User Info -->
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 rounded-full ">
+                    <img th:src="@{/api/v1/image}" alt="" class="w-10 h-10 rounded-full object-cover">
+                </div>
+                <div class="pl-2">
+                    <div class="font-semibold text-sm" th:text="${user_details.getFirstName()}"></div>
+                    <div class="flex items-center text-xs text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="currentColor"
+                             viewBox="0 0 16 16">
+                            <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                        </svg>
+                        Friends
+                    </div>
+                </div>
+            </div>
+
+            <!-- Textarea -->
+            <textarea
+                    placeholder="What's on your mind?"
+                    class="w-full resize-none border-none focus:ring-0 text-lg text-gray-800 placeholder-gray-500 mb-4"
+                    rows="3"
+                    style="outline: none !important;"
+            ></textarea>
+
+            <!-- Options -->
+            <div class="border-t pt-3 flex justify-between items-center">
+                <div class="flex space-x-3">
+                    <!-- Image Upload -->
+                    <label
+                            for="imageUpload"
+                            class="flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-200 transition text-sm"
+                    >
+                        🖼️ Upload Image
+                    </label>
+                    <input type="file" id="imageUpload" accept="image/*" class="hidden"/>
+
+                    <!-- Video Upload -->
+                    <label
+                            for="videoUpload"
+                            class="flex items-center px-3 py-1.5 bg-green-100 text-green-700 rounded-lg cursor-pointer hover:bg-green-200 transition text-sm"
+                    >
+                        🎥 Upload Video
+                    </label>
+                    <input type="file" id="videoUpload" accept="video/mp4" class="hidden"/>
+                </div>
+            </div>
+
+            <!-- Post button -->
+            <div class="mt-4">
+                <button class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg">
+                    Post
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+
+</script>
+</body>
+</html>

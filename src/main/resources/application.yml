@@ -1,0 +1,39 @@
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          azure:
+            issuer-uri: https://login.microsoftonline.com/3534b3d7-316c-4bc9-9ede-605c860f49d2/v2.0
+        registration:
+          azure:
+            provider: azure
+            client-id: e47bb240-da91-4281-b604-741c8cfa940c
+            client-secret: rQp8Q~AV.6Qxc_zbWmOPnta-eDiIktC-.eLgIcYp
+            scope:
+              - openid
+              - email
+              - profile
+
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/epita_social?createDatabaseIfNotExist=true
+    username: root
+    password: Prakash@1
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+      enabled: true
+server:
+  port: 8080

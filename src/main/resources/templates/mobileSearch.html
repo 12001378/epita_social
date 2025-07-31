@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>EPITA - SOCIAL</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/images/logo.png}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    <link th:href="@{https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css}" rel="stylesheet">
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-white h-screen w-screen flex flex-col overflow-hidden">
+
+<section class="p-4">
+    <div class="relative w-full">
+        <input id="searchInput" type="text" placeholder="Search Friends..."
+               class="w-full px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+               autocomplete="off">
+        <div id="searchResults"
+             class="absolute top-full left-0 mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden max-h-64 overflow-y-auto scrollbar-hide">
+            <!-- Results go here -->
+        </div>
+    </div>
+</section>
+
+<!-- Bottom Navigation - Mobile -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50">
+    <div class="flex justify-around py-2">
+        <a th:href="@{/api/v1/home}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-comments text-xl"></i>
+            <span class="text-xs mt-1">Messages</span>
+        </a>
+        <button onclick="toggleModal()" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-plus-square text-xl"></i>
+            <span class="text-xs mt-1">Post</span>
+        </button>
+        <a th:href="@{/api/v1/profile/mobile-search}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-search text-xl"></i>
+            <span class="text-xs mt-1">Search</span>
+        </a>
+        <a th:href="@{/api/v1/profile}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-user-circle text-xl"></i>
+            <span class="text-xs mt-1">Profile</span>
+        </a>
+    </div>
+</nav>
+
+<script>
+    const input = document.getElementById('searchInput');
+    const resultsBox = document.getElementById('searchResults');
+
+    input.addEventListener('input', async function () {
+        const query = input.value.trim();
+
+        if (query.length === 0) {
+            resultsBox.classList.add('hidden');
+            resultsBox.innerHTML = '';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/profile/search?name=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                resultsBox.innerHTML = data.map(item => `
+                    <a href="/api/v1/profile/${item.profile_id}" class="flex items-center gap-3 p-4 border-b hover:bg-gray-100">
+                        <img src="/api/v1/image/${item.profile_id}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <span class="text-gray-800 font-medium">${item.user.firstName}</span>
+                            <p class="text-sm text-gray-500">${item.user.email}</p>
+                        </div>
+                    </a>
+                `).join('');
+                resultsBox.classList.remove('hidden');
+            } else {
+                resultsBox.innerHTML = `<div class="px-4 py-2 text-gray-500">No results found</div>`;
+                resultsBox.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error("Search failed:", err);
+            resultsBox.innerHTML = `<div class="px-4 py-2 text-red-500">Error loading results</div>`;
+            resultsBox.classList.remove('hidden');
+        }
+    });
+</script>
+
+</body>
+</html>
+

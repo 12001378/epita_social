@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org" th:fragment="layout(content)" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" th:href="@{/images/logo.png}">
+    <title>EPITA - SOCIAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+</head>
+<body class="bg-gray-100">
+<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50 px-4 py-3">
+    <div class="flex items-center justify-between max-w-7xl mx-auto">
+        <img src="/images/logo.png" alt="logo" width="50" height="50" srcset="">
+
+        <!-- Search Bar - Hidden on mobile -->
+        <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+            <input id="searchInput" type="text" placeholder="Search Friends..."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div id="searchResults"
+                 class="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+                <!-- Results will go here -->
+            </div>
+        </div>
+
+
+        <!-- Navbar Icons -->
+        <div class="flex items-center gap-4">
+            <button onclick="toggleFriendRequests()"
+                    class="relative p-2 text-gray-600 hover:text-blue-500 transition-colors">
+                <i class="fas fa-user-friends text-xl"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">1</span>
+            </button>
+            <button onclick="toggleNotifications()"
+                    class="relative p-2 text-gray-600 hover:text-blue-500 transition-colors">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+            </button>
+            <button onclick="toggleModal()"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                <i class="fas fa-plus-square text-xl"></i>
+                <span class="text-md mt-1">Post</span>
+            </button>
+            <button onclick=""
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+                <i class="fas fa-comments text-lg"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+<aside class="hidden lg:flex flex-col justify-between w-64 fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white shadow-sm p-4 overflow-y-auto">
+    <!-- Top Nav Links -->
+    <nav class="space-y-2">
+        <a th:href="@{/api/v1/home}"
+           class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+            <i class="fas fa-home text-lg"></i>
+            <span>Home</span>
+        </a>
+        <a href="#"
+           class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+            <i class="fas fa-comments text-lg"></i>
+            <span>Messages</span>
+        </a>
+        <a href="#"
+           class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+            <i class="fas fa-bell text-lg"></i>
+            <span>Notifications</span>
+        </a>
+        <a href="#"
+           class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+            <i class="fas fa-user-friends text-lg"></i>
+            <span>Friend Requests</span>
+        </a>
+        <a href="#"
+           class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+            <i class="fas fa-cog text-lg"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Bottom Profile Section -->
+    <div class="mt-auto pt-4">
+        <hr>
+        <div class="flex items-center justify-between p-2 rounded-lg">
+            <div class="flex items-center gap-3">
+                <a th:href="@{/api/v1/profile}"><img src="/api/v1/image" alt="Profile" class="w-10 h-10 rounded-full object-cover"></a>
+                <span class="text-gray-800 font-medium" th:text="${user_details.firstName}"></span>
+            </div>
+            <!-- Logout Icon -->
+            <a href="" class="text-red-500 hover:text-red-600" title="Logout">
+                <i class="fas fa-sign-out-alt text-lg"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+<main th:replace="${content}">
+
+</main>
+
+<!-- Friend Requests Popup -->
+<div id="friendRequestsPopup"
+     class="fixed top-16 right-4 bg-white rounded-lg shadow-lg border border-gray-200 w-90 max-h-96 overflow-y-auto z-50 hidden">
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Friend Requests</h3>
+    </div>
+    <div class="p-4 space-y-3">
+        <div class="flex items-center gap-3">
+            <img src="https://i.pravatar.cc/40?img=20" alt="User" class="w-10 h-10 rounded-full object-cover">
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">@request_user</p>
+                <p class="text-sm text-gray-500">1 mutual friend</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="px-3 py-1 text-sm bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors">
+                    Accept
+                </button>
+                <button class="px-3 py-1 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+                    Decline
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Popup -->
+<div id="notificationsPopup"
+     class="fixed top-16 right-4 bg-white rounded-lg shadow-lg border border-gray-200 w-80 max-h-96 overflow-y-auto z-50 hidden">
+    <div class="p-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+    </div>
+    <div class="p-4 space-y-3">
+        <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+            <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-heart text-red-500"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm text-gray-900">@jane liked your post</p>
+                <p class="text-xs text-gray-500">2 hours ago</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bottom Navigation - Mobile -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50">
+    <div class="flex justify-around py-2">
+        <a th:href="@{/api/v1/home}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-home text-xl"></i>
+            <span class="text-xs mt-1">Home</span>
+        </a>
+        <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-comments text-xl"></i>
+            <span class="text-xs mt-1">Messages</span>
+        </a>
+        <button onclick="toggleModal()" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-plus-square text-xl"></i>
+            <span class="text-xs mt-1">Post</span>
+        </button>
+        <a th:href="@{/api/v1/profile/mobile-search}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-search text-xl"></i>
+            <span class="text-xs mt-1">Search</span>
+        </a>
+        <a th:href="@{/api/v1/profile}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+            <i class="fas fa-user-circle text-xl"></i>
+            <span class="text-xs mt-1">Profile</span>
+        </a>
+    </div>
+</nav>
+
+<script>
+    function toggleModal() {
+        const modal = document.getElementById('postModal');
+        modal.classList.toggle('hidden');
+        modal.classList.toggle('flex');
+    }
+
+    function toggleComments(commentsId) {
+        const comments = document.getElementById(commentsId);
+        comments.classList.toggle('hidden');
+    }
+
+    function toggleLike(button) {
+        const icon = button.querySelector('i');
+        const count = button.querySelector('span');
+        const currentCount = parseInt(count.textContent);
+
+        if (icon.classList.contains('far')) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            button.classList.add('text-red-500');
+            button.classList.remove('text-gray-600');
+            count.textContent = currentCount + 1;
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            button.classList.remove('text-red-500');
+            button.classList.add('text-gray-600');
+            count.textContent = currentCount - 1;
+        }
+    }
+
+    function toggleFriendRequests() {
+        const popup = document.getElementById('friendRequestsPopup');
+        const notificationsPopup = document.getElementById('notificationsPopup');
+
+        // Hide notifications popup if open
+        notificationsPopup.classList.add('hidden');
+
+        // Toggle friend requests popup
+        popup.classList.toggle('hidden');
+    }
+
+    function toggleNotifications() {
+        const popup = document.getElementById('notificationsPopup');
+        const friendRequestsPopup = document.getElementById('friendRequestsPopup');
+
+        // Hide friend requests popup if open
+        friendRequestsPopup.classList.add('hidden');
+
+        // Toggle notifications popup
+        popup.classList.toggle('hidden');
+    }
+
+    function createPost() {
+        // In a real app, this would send data to a server
+        alert('Post created successfully!');
+        toggleModal();
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('postModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            toggleModal();
+        }
+    });
+
+    function profileShow(id) {
+
+    }
+
+    // Close popups when clicking outside
+    document.addEventListener('click', function (e) {
+        const friendRequestsPopup = document.getElementById('friendRequestsPopup');
+        const notificationsPopup = document.getElementById('notificationsPopup');
+        const friendRequestsButton = e.target.closest('button[onclick="toggleFriendRequests()"]');
+        const notificationsButton = e.target.closest('button[onclick="toggleNotifications()"]');
+
+        if (!friendRequestsButton && !friendRequestsPopup.contains(e.target)) {
+            friendRequestsPopup.classList.add('hidden');
+        }
+
+        if (!notificationsButton && !notificationsPopup.contains(e.target)) {
+            notificationsPopup.classList.add('hidden');
+        }
+    });
+
+    //Search friends
+    const input = document.getElementById('searchInput');
+    const resultsBox = document.getElementById('searchResults');
+
+    input.addEventListener('input', async function () {
+        const query = input.value.trim();
+
+        if (query.length === 0) {
+            resultsBox.classList.add('hidden');
+            resultsBox.innerHTML = '';
+            return;
+        }
+
+        try {
+            // Correct API call (assuming query param like ?name=...)
+            const response = await fetch(`/api/v1/profile/search?name=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                resultsBox.innerHTML = data.map(item => `
+                    <a href="/api/v1/profile/${item.profile_id}" class="flex items-center gap-3 p-4 cursor-pointer">
+                    <img src="/api/v1/image/${item.profile_id}" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                    <span class="text-gray-800 font-medium">${item.user.firstName}</span>
+                    <p>${item.user.email}</p>
+                    </div>
+                </a>
+                `).join('');
+                resultsBox.classList.remove('hidden');
+            } else {
+                resultsBox.innerHTML = `<div class="px-4 py-2 text-gray-500">No results found</div>`;
+                resultsBox.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error("Search failed:", err);
+            resultsBox.innerHTML = `<div class="px-4 py-2 text-red-500">Error loading results</div>`;
+            resultsBox.classList.remove('hidden');
+        }
+    });
+
+    //api call for upload cover photo
+
+    $(document).ready(function () {
+
+        $('#coverUploadInput').on('change',function (){
+            const file = this.files[0];
+
+            if (!file) {
+                alert("No file selected.");
+                return;
+            }
+            const formData = new FormData();
+            formData.append('cover_pic',file);
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            $.ajax({
+                url:'/api/v1/upload_cover',
+                method:'POST',
+                data:formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (){
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                error: function (){
+                    alert('something went wrong, please try Again later')
+                }
+            })
+        });
+    });
+    $(document).ready(function () {
+
+        $('#profileUploadInput').on('change',function (){
+            const file = this.files[0];
+
+            if (!file) {
+                alert("No file selected.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('profile_pic',file);
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            $.ajax({
+                url:'/api/v1/upload',
+                method:'POST',
+                data:formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (){
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                error: function (){
+                    alert('something went wrong, please try Again later')
+                }
+            })
+        });
+    });
+
+
+    //tab rendering (posts, saved, tagged)
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('[data-tab]');
+        const contents = document.querySelectorAll('[data-content]');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const targetId = tab.getAttribute('data-tab');
+
+                // Remove active class and hide all contents
+                tabs.forEach(t => t.classList.remove('border-blue-500', 'text-blue-600'));
+                contents.forEach(c => c.classList.add('hidden'));
+
+                // Activate clicked tab and show content
+                tab.classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById(targetId).classList.remove('hidden');
+            });
+        });
+    });
+
+    $(document).ready(function () {
+
+        $('#follow-button').on('click',function (){
+
+            const profile_id = $('#profile_id').val();
+
+            const formData = new FormData();
+            formData.append('profile_id',profile_id);
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            $.ajax({
+                url:'/api/v1/profile/follow',
+                method:'POST',
+                data:formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (){
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                error: function (){
+                    alert('something went wrong, please try Again later')
+                }
+            })
+        });
+    });
+
+</script>
+
+</body>
+</html>
