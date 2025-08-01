@@ -68,11 +68,13 @@ public class ProfileController {
     }
 
     @PostMapping("/profile/follow")
-    public ResponseEntity<?> addFollowers(@RequestParam("profile_id") UUID profile_id, OAuth2AuthenticationToken user_auth) throws Exception {
+    public ResponseEntity<?> addFollowers(@RequestParam("profile_id") String profile_id, OAuth2AuthenticationToken user_auth) throws Exception {
+        UUID profileId = UUID.fromString(profile_id);
+        System.err.println(profileId);
         var userDetails = user_auth.getPrincipal().getAttributes();
         String email = userDetails.get("email").toString();
         User user1 = userService.findByEmail(email);
-        profileService.addFollower(profile_id, user1.getUserId());
+        profileService.addFollower(profileId, user1.getUserId());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

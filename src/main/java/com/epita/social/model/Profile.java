@@ -24,11 +24,19 @@ public class Profile {
     @JoinColumn(nullable = false)
     private User user;
 
-    @OneToMany
-    @JdbcType(VarcharJdbcType.class)
+    @ManyToMany
+    @JoinTable(
+            name = "profile_followers",
+            joinColumns = @JoinColumn(name = "profile_id"),
+            inverseJoinColumns = @JoinColumn(name = "followers_id")
+    )
     private Set<User> followers;
-    @OneToMany
-    @JdbcType(VarcharJdbcType.class)
+    @ManyToMany
+    @JoinTable(
+            name = "profile_following",
+            joinColumns = @JoinColumn(name = "profile_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id")
+    )
     private Set<User> following;
 
     private String profile_bio;

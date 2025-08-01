@@ -31,7 +31,7 @@ public class Post {
 
     @JdbcType(VarcharJdbcType.class)
     private UUID  profile_id;
-    @OneToMany
+    @ManyToMany
     private Set<Comments> comments;
     @ManyToMany
     private Set<User> liked = new HashSet<>();
