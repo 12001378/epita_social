@@ -7,8 +7,8 @@
     <title>EPITA - SOCIAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
@@ -97,7 +97,8 @@
         <hr>
         <div class="flex items-center justify-between p-2 rounded-lg">
             <div class="flex items-center gap-3">
-                <a th:href="@{/api/v1/profile}"><img src="/api/v1/image" alt="Profile" class="w-10 h-10 rounded-full object-cover"></a>
+                <a th:href="@{/api/v1/profile}"><img src="/api/v1/image" alt="Profile"
+                                                     class="w-10 h-10 rounded-full object-cover"></a>
                 <span class="text-gray-800 font-medium" th:text="${user_details.firstName}"></span>
             </div>
             <!-- Logout Icon -->
@@ -164,14 +165,15 @@
             <span class="text-xs mt-1">Home</span>
         </a>
         <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
-            <i class="fas fa-comments text-xl"></i>
-            <span class="text-xs mt-1">Messages</span>
+            <i class="fas fa-bell text-lg"></i>
+            <span class="text-xs mt-1">Notification</span>
         </a>
         <button onclick="toggleModal()" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
             <i class="fas fa-plus-square text-xl"></i>
             <span class="text-xs mt-1">Post</span>
         </button>
-        <a th:href="@{/api/v1/profile/mobile-search}" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+        <a th:href="@{/api/v1/profile/mobile-search}"
+           class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
             <i class="fas fa-search text-xl"></i>
             <span class="text-xs mt-1">Search</span>
         </a>
@@ -313,7 +315,7 @@
 
     $(document).ready(function () {
 
-        $('#coverUploadInput').on('change',function (){
+        $('#coverUploadInput').on('change', function () {
             const file = this.files[0];
 
             if (!file) {
@@ -321,13 +323,13 @@
                 return;
             }
             const formData = new FormData();
-            formData.append('cover_pic',file);
+            formData.append('cover_pic', file);
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');
             $.ajax({
-                url:'/api/v1/upload_cover',
-                method:'POST',
-                data:formData,
+                url: '/api/v1/upload_cover',
+                method: 'POST',
+                data: formData,
                 processData: false,
                 contentType: false,
                 beforeSend: function (xhr) {
@@ -335,12 +337,12 @@
                         xhr.setRequestHeader(header, token);
                     }
                 },
-                success: function (){
+                success: function () {
                     setTimeout(() => {
                         location.reload();
                     }, 500);
                 },
-                error: function (){
+                error: function () {
                     alert('something went wrong, please try Again later')
                 }
             })
@@ -348,7 +350,7 @@
     });
     $(document).ready(function () {
 
-        $('#profileUploadInput').on('change',function (){
+        $('#profileUploadInput').on('change', function () {
             const file = this.files[0];
 
             if (!file) {
@@ -357,13 +359,13 @@
             }
 
             const formData = new FormData();
-            formData.append('profile_pic',file);
+            formData.append('profile_pic', file);
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');
             $.ajax({
-                url:'/api/v1/upload',
-                method:'POST',
-                data:formData,
+                url: '/api/v1/upload',
+                method: 'POST',
+                data: formData,
                 processData: false,
                 contentType: false,
                 beforeSend: function (xhr) {
@@ -371,12 +373,12 @@
                         xhr.setRequestHeader(header, token);
                     }
                 },
-                success: function (){
+                success: function () {
                     setTimeout(() => {
                         location.reload();
                     }, 500);
                 },
-                error: function (){
+                error: function () {
                     alert('something went wrong, please try Again later')
                 }
             })
@@ -408,18 +410,18 @@
 
     $(document).ready(function () {
 
-        $('#follow-button').on('click',function (){
+        $('#follow-button').on('click', function () {
 
             const profile_id = $('#profile_id').val();
 
             const formData = new FormData();
-            formData.append('profile_id',profile_id);
+            formData.append('profile_id', profile_id);
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');
             $.ajax({
-                url:'/api/v1/profile/follow',
-                method:'POST',
-                data:formData,
+                url: '/api/v1/profile/follow',
+                method: 'POST',
+                data: formData,
                 processData: false,
                 contentType: false,
                 beforeSend: function (xhr) {
@@ -427,17 +429,80 @@
                         xhr.setRequestHeader(header, token);
                     }
                 },
-                success: function (){
+                success: function () {
                     setTimeout(() => {
                         location.reload();
                     }, 500);
                 },
-                error: function (){
+                error: function () {
                     alert('something went wrong, please try Again later')
                 }
             })
         });
     });
+
+
+    $(document).ready(function () {
+
+        const imageInput = document.getElementById("postFileImg");
+        const videoInput = document.getElementById("postFileVideo");
+
+        $('#post_upload').on('click', function () {
+            let file = null;
+
+            let media_type = "";
+            if (imageInput && imageInput.files && imageInput.files.length > 0) {
+                file = imageInput.files[0];
+                media_type = "image";
+            } else if (videoInput && videoInput.files && videoInput.files.length > 0) {
+                file = videoInput.files[0];
+                media_type = "video";
+            } else {
+                alert("Please select an image or video file.");
+                return;
+            }
+
+            const caption = $('#post_caption').val();
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            const story = {
+                caption: caption
+            }
+            const formData = new FormData();
+            formData.append("media", file);
+            formData.append("post", new Blob([JSON.stringify(story)], {type: "application/json"}));
+
+            $.ajax({
+                url: `/api/v1/post/add/type=${media_type}`,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                    console.log(response)
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                error: function () {
+                    alert('something went wrong, please try Again later')
+                }
+            })
+        });
+    });
+
+    function closeStoryPopup() {
+        document.getElementById('postPopup').classList.add('hidden');
+    }
+
+    function openStoryPopup(element) {
+        document.getElementById('postPopup').classList.remove('hidden');
+    }
 
 </script>
 

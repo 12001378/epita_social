@@ -7,6 +7,7 @@ import com.epita.social.model.User;
 import com.epita.social.repo.ProfileRepo;
 import com.epita.social.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -58,7 +59,6 @@ public class IndexController {
             User existing_user1 = userService.findByEmail(email);
             Profile profile1 = profileRepo.findByUser(existing_user1);
             model.addAttribute("profile", profile);
-
 //            List<Post> feed = postService.getFeed(user);
             List<Post> feed = postService.getAllPosts();
             model.addAttribute("feed", feed);
@@ -69,6 +69,15 @@ public class IndexController {
         }
 
         return "index";
+    }
+
+    @GetMapping("/api/v1/main/user")
+    public ResponseEntity<?> user(Model model, OAuth2AuthenticationToken user) throws Exception {
+        var userDetails = user.getPrincipal().getAttributes();
+        String email = userDetails.get("email").toString();
+        User user_details = userService.findByEmail(email);
+        model.addAttribute("user", user_details);
+        return new ResponseEntity<>(user_details, HttpStatus.OK);
     }
 
     @GetMapping("/user/photo")

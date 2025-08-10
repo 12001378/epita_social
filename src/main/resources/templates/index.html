@@ -20,6 +20,22 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.25s ease-out;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100">
@@ -79,14 +95,14 @@
             <p class="text-xs mt-1 text-gray-600">Add to Story</p>
         </div>
 
-        <div th:each="story : ${storyList}" class="flex-shrink-0 text-center">
+        <div th:each="story : ${storyList}" class="flex-shrink-0 text-center w-16">
             <div th:data-story-id="${story.storyId}"
                  onclick="openStoryPopup(this)"
                  class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 cursor-pointer">
                 <img th:src="@{/api/v1/image/{id}(id=${story.getProfileId()})}" alt="Story"
                      class="w-full h-full rounded-full object-cover">
             </div>
-            <p class="text-xs mt-1 text-gray-600">amy_smith</p>
+            <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.author}"></p>
         </div>
 
     </div>
@@ -156,7 +172,7 @@
 
                 <!-- Story Circle with Symbol -->
                 <div class="relative flex-shrink-0 text-center cursor-pointer" onclick="toggleModalStory()">
-                    <div  class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 relative">
+                    <div class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 relative">
                         <img src="/api/v1/image" alt="Story" class="w-full h-full rounded-full object-cover">
                         <!-- Plus icon overlay -->
                         <div class="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs border-2 border-white">
@@ -166,14 +182,16 @@
                     <p class="text-xs mt-1 text-gray-600">Add to Story</p>
                 </div>
 
-                <div th:each="story : ${storyList}" class="flex-shrink-0 text-center">
+                <div th:each="story : ${storyList}" class="flex-shrink-0 text-center w-16">
                     <div th:data-story-id="${story.storyId}"
-                         onclick="openStoryPopup(this)" class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 cursor-pointer">
+                         onclick="openStoryPopup(this)"
+                         class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 cursor-pointer">
                         <img th:src="@{/api/v1/image/{id}(id=${story.getProfileId()})}" alt="Story"
                              class="w-full h-full rounded-full object-cover">
                     </div>
-                    <p class="text-xs mt-1 text-gray-600" th:text="${story.author}"></p>
+                    <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.author}"></p>
                 </div>
+
 
             </div>
         </div>
@@ -342,8 +360,8 @@
             <span class="text-xs mt-1">Home</span>
         </a>
         <a href="#" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
-            <i class="fas fa-comments text-xl"></i>
-            <span class="text-xs mt-1">Messages</span>
+            <i class="fas fa-bell text-lg"></i>
+            <span class="text-xs mt-1">Notification</span>
         </a>
         <button onclick="toggleModal()" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
             <i class="fas fa-plus-square text-xl"></i>
@@ -406,7 +424,7 @@
 </div>
 
 <!-- Post Modal -->
-<div id="postModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+<div id="postModal1" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-md w-full max-w-md p-4">
         <!-- Header -->
         <div class="text-lg font-semibold mb-4">Create post</div>
@@ -469,24 +487,8 @@
 
 </div>
 
-<!-- Story Form Modal -->
-<!--<div id="storyModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">-->
-<!--    <div class="bg-white rounded-xl p-6 w-80">-->
-<!--        <h2 class="text-lg font-semibold mb-4">Create a Story</h2>-->
-<!--        <form>-->
-<!--            <input type="text" placeholder="Story title..." class="w-full mb-3 p-2 border rounded"/>-->
-<!--            <textarea placeholder="Write something..." class="w-full mb-3 p-2 border rounded"></textarea>-->
-<!--            <input type="file" class="mb-3"/>-->
-<!--            <div class="flex justify-end">-->
-<!--                <button type="button" onclick="toggleModalStory()" class="mr-2 px-4 py-2 rounded bg-gray-300">Cancel</button>-->
-<!--                <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white">Post</button>-->
-<!--            </div>-->
-<!--        </form>-->
-<!--    </div>-->
-<!--</div>-->
-
 <div id="storyModal"
-     class="fixed inset-0 z-50 max-w-md mx-auto p-4 rounded-2xl bg-white shadow-lg border border-gray-200 hidden">
+     class="fixed inset-0 z-50 max-w-md mx-auto p-4 rounded-2xl bg-white shadow-lg border border-gray-200 m-4 hidden">
     <div class="flex items-center justify-between p-4">
         <h2 class="text-xl font-bold mb-4 text-center">Add to Your Story</h2>
         <button type="button" onclick="toggleModalStory()" class="mr-2 px-4 py-2 rounded bg-gray-300">
@@ -530,35 +532,118 @@
 
 
 <!-- Story Modal -->
-<div id="storyPopup" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden">
-    <div class="bg-white rounded-xl p-4 max-w-md w-full shadow-xl relative">
-        <button onclick="closeStoryPopup()" class="absolute top-2 right-2 text-gray-600 hover:text-black">
-           <i class="fa fa-close"></i>
-        </button>
+<div id="storyPopup"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 hidden">
+    <div class="bg-white rounded-xl p-6 w-[700px] h-[500px] shadow-2xl relative overflow-hidden">
+        <!-- Close Button -->
+        <i onclick="closeStoryPopup()"
+           class="fas fa-close absolute top-4 right-4 text-xl text-gray-500 hover:text-black cursor-pointer"></i>
 
-        <div id="storyContent" class="w-full relative">
-            <a th:href="@{/api/v1/profile/{id}(id=${profile.profile_id})}">
-                <img th:src="@{/api/v1/image/{id}(id=${profile.profile_id})}" alt="User"
-                     class="w-10 h-10 rounded-full object-cover"></a>
-            <div class="flex-1">
-                <p class="font-medium text-gray-900" th:text="${profile.username}"></p>
-                <p class="text-sm text-gray-500">Suggested for you</p>
+        <!-- Story Content -->
+        <div id="storyContent" class="w-full h-full relative flex flex-col gap-4">
+            <!-- User Info -->
+            <div class="flex items-center gap-3">
+                <a th:href="@{/api/v1/profile/{id}(id=${profile.profile_id})}">
+                    <img th:src="@{/api/v1/image/{id}(id=${profile.profile_id})}"
+                         alt="User"
+                         class="w-12 h-12 rounded-full object-cover border border-gray-300">
+                </a>
+                <div>
+                    <p class="font-semibold text-gray-900 text-lg" th:text="${profile.username}"></p>
+                    <p class="text-sm text-gray-500">Just now</p>
+                </div>
             </div>
-            <div id="mediaContainer" class="w-full rounded-lg relative">
-                <img id="storyImage" src="/api/v1/image" class="w-full rounded-lg"/>
+
+            <!-- Media Container -->
+            <div id="mediaContainer" class="flex-1 w-full overflow-hidden rounded-lg">
+                <img id="storyImage" src="/api/v1/image"
+                     class="w-full h-full object-cover rounded-lg"/>
             </div>
-            <p id="storyCaption" class="absolute bottom-0 left-0 w-full bg-opacity-80 bg-black text-white text-center py-2">hello add </p>
+
+            <!-- Caption -->
+            <p id="storyCaption"
+               class="text-center text-sm text-white bg-black bg-opacity-70 p-2 rounded-md w-full absolute bottom-4 left-0">
+                hello add
+            </p>
         </div>
     </div>
 </div>
 
+<!--post model-->
+<div id="postModal"
+     class="fixed inset-0 z-50 max-w-md mx-auto p-4 rounded-2xl bg-white shadow-lg border border-gray-200 m-4 hidden">
+    <div class="flex items-center justify-between p-4">
+        <h2 class="text-xl font-bold mb-4 text-center">Add Post</h2>
+        <button type="button" onclick="toggleModalPost()" class="mr-2 px-4 py-2 rounded bg-gray-300">
+            <i class="fas fa-close"></i>
+        </button>
+    </div>
+
+    <!-- File Upload -->
+    <div class="flex items-center justify-between gap-4">
+        <label for="storyFileImg"
+               class="cursor-pointer w-full h-40 flex items-center justify-center bg-gradient-to-tr from-blue-400 to-pink-500 text-white rounded-lg">
+            <span><i class="fa fa-image"></i></span>
+            <input type="file" id="postFileImg" name="image" accept="image/*" class="hidden"
+                   onchange="previewPost(this)">
+        </label>
+
+        <label for="storyFileVideo"
+               class="cursor-pointer w-full h-40 flex items-center justify-center bg-gradient-to-tr from-blue-400 to-pink-500 text-white rounded-lg">
+            <span><i class="fa fa-video"></i></span>
+            <input type="file" id="postFileVideo" name="video" accept="video/*" class="hidden"
+                   onchange="previewPost(this)">
+        </label>
+    </div>
+
+    <!-- Preview -->
+    <div id="postPreview" class="mt-4 hidden">
+        <img id="postImage" class="w-full rounded-lg hidden"/>
+        <video id="postVideo" class="w-full rounded-lg hidden" autoplay loop></video>
+    </div>
+
+    <!-- Caption -->
+    <textarea name="caption" placeholder="Say something..." rows="5"
+              class="w-full mt-4 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 resize-none"></textarea>
+
+    <!-- Submit -->
+    <button type="submit" id="post_upload"
+            class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold p-2 rounded-lg transition">
+        Post
+    </button>
+</div>
 
 
 <script>
 
-    const profile_id = $('#profileId').val();
+
     const token = $('meta[name="_csrf"]').attr('content');
     const header = $('meta[name="_csrf_header"]').attr('content');
+
+    $(document).ready(function () {
+        $.ajax({
+            url: `/api/v1/main/user`,
+            method: 'GET',
+            processData: false,
+            contentType: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (responseData) {
+                // location.reload();
+            },
+            error: function () {
+                alert("something went wrong, Please reload the page....")
+            }
+        });
+    });
+
+
+    const profile_id = $('#profileId').val();
+    // const token = $('meta[name="_csrf"]').attr('content');
+    // const header = $('meta[name="_csrf_header"]').attr('content');
     $.ajax({
         url: `/api/v1/getProfileDetails/${profile_id}`,
         method: 'GET',
@@ -607,6 +692,34 @@
         }
     }
 
+    function previewPost(input) {
+        const file = input.files[0];
+        const previewContainer = document.getElementById("postPreview");
+        const imagePreview = document.getElementById("postImage");
+        const videoPreview = document.getElementById("postVideo");
+
+        if (!file) {
+            previewContainer.classList.add("hidden");
+            return;
+        }
+
+        const fileURL = URL.createObjectURL(file);
+        previewContainer.classList.remove("hidden");
+
+        if (file.type.startsWith("image/")) {
+            imagePreview.src = fileURL;
+            imagePreview.classList.remove("hidden");
+            videoPreview.classList.add("hidden");
+        } else if (file.type.startsWith("video/")) {
+            videoPreview.src = fileURL;
+            videoPreview.classList.remove("hidden");
+            imagePreview.classList.add("hidden");
+        } else {
+            alert("Unsupported file type. Please upload an image or video.");
+            previewContainer.classList.add("hidden");
+        }
+    }
+
 
     function toggleModal() {
         const modal = document.getElementById('postModal');
@@ -618,7 +731,11 @@
     function toggleModalStory() {
         const modal = document.getElementById("storyModal");
         modal.classList.toggle("hidden");
-        // modal.classList.toggle("flex");
+    }
+
+    function toggleModalPost() {
+        const modal = document.getElementById("postModal");
+        modal.classList.toggle("hidden");
     }
 
 
@@ -862,14 +979,14 @@
             }
             const formData = new FormData();
             formData.append("media", file);
-            formData.append("story", new Blob([JSON.stringify(story)], { type: "application/json" }));
+            formData.append("story", new Blob([JSON.stringify(story)], {type: "application/json"}));
 
             $.ajax({
                 url: `/api/v1/story/add/type=${media_type}`,
                 method: 'POST',
                 data: formData,
                 processData: false,
-                contentType:false,
+                contentType: false,
                 beforeSend: function (xhr) {
                     if (token && header) {
                         xhr.setRequestHeader(header, token);
@@ -892,10 +1009,72 @@
         document.getElementById('storyPopup').classList.add('hidden');
     }
 
-    function openStoryPopup(element){
+    function openStoryPopup(element) {
         const storyId = element.getAttribute('data-story-id');
         document.getElementById('storyPopup').classList.remove('hidden');
 
+    }
+
+    $(document).ready(function () {
+
+        const imageInput = document.getElementById("postFileImg");
+        const videoInput = document.getElementById("postFileVideo");
+
+        $('#post_upload').on('click', function () {
+            let file = null;
+
+            let media_type = "";
+            if (imageInput && imageInput.files && imageInput.files.length > 0) {
+                file = imageInput.files[0];
+                media_type = "image";
+            } else if (videoInput && videoInput.files && videoInput.files.length > 0) {
+                file = videoInput.files[0];
+                media_type = "video";
+            } else {
+                alert("Please select an image or video file.");
+                return;
+            }
+
+            const caption = $('#post_caption').val();
+            const token = $('meta[name="_csrf"]').attr('content');
+            const header = $('meta[name="_csrf_header"]').attr('content');
+            const story = {
+                caption: caption
+            }
+            const formData = new FormData();
+            formData.append("media", file);
+            formData.append("post", new Blob([JSON.stringify(story)], {type: "application/json"}));
+
+            $.ajax({
+                url: `/api/v1/post/add/type=${media_type}`,
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                    console.log(response)
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                error: function () {
+                    alert('something went wrong, please try Again later')
+                }
+            })
+        });
+    });
+
+    function closePostPopup() {
+        document.getElementById('postPopup').classList.add('hidden');
+    }
+
+    function openPostPopup(element) {
+        document.getElementById('postPopup').classList.remove('hidden');
     }
 
 </script>

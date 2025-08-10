@@ -1,9 +1,7 @@
 package com.epita.social.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.type.descriptor.jdbc.VarcharJdbcType;
@@ -30,7 +28,7 @@ public class Message {
 	private User user;
 	
 	@ManyToOne
-//	@JoinColumn(name="chat_id")
+	@JoinColumn(name="chat_id")
 	@JdbcType(VarcharJdbcType.class)
 	private Chat chat;
 	

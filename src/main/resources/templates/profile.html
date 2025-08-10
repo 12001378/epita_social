@@ -124,7 +124,7 @@
         </div>
 
         <!-- Post Grid -->
-        <div id="posts" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8">
+        <div id="posts" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-8">
             <article th:each="post : ${profile.posts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <img th:src="${post.image}" alt="Post"
                      class="w-full h-64 sm:h-80 object-cover rounded-lg">
@@ -145,28 +145,43 @@
                             <i class="far fa-share-square text-lg"></i>
                             <span class="text-sm">Share</span>
                         </button>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                            <i class="fa fa-bookmark-o text-lg"></i>
+                        </button>
+
+
                     </div>
                     <div id="comments1" class="hidden border-t border-gray-100 pt-3">
-                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                        <div th:each="comments : ${profile}" class="space-y-2 mb-3">
+
                             <div class="mt-4">
                                 <p class="font-semibold text-gray-700">Comments:</p>
+
                                 <div th:if="${#lists.isEmpty(post.comments)}">
                                     <p class="text-gray-400 text-sm">No comments yet.</p>
                                 </div>
-                                <div th:each="comment : ${post.comments}"
-                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
-                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
-                                         alt="User" class="w-8 h-8 rounded-full object-cover">
-                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment text</p>
-                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
-                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+
+                                <!-- Scrollable Comment List -->
+                                <div class="max-h-48 min-h-[4rem] overflow-y-auto pr-2 space-y-2">
+                                    <div th:each="comment : ${post.comments}" class="flex items-start border-t pt-2">
+                                        <img th:src="@{/api/v1/image/{id}(id=${comment.profile_id})}"
+                                             alt="User" class="w-8 h-8 rounded-full object-cover mt-1">
+                                        <p class="text-sm text-gray-700 pl-2 flex-1" th:text="${comment.comment}">
+                                            Comment text</p>
+                                        <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                        <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Comment Input -->
                         <div class="flex gap-2">
-                            <input type="text" placeholder="Add a comment..."
+                            <img th:src="@{/api/v1/image}" class="rounded-full w-8 h-8" alt="Post">
+                            <input width="150px" height="50px" id="comment_text" type="text" placeholder="Write a comment..."
                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                            <button id="comment_send"
+                                    class="text-blue-600 rounded-full hover:bg-white-600 transition-colors">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
@@ -176,7 +191,7 @@
         </div>
 
         <!-- Saved Posts -->
-        <div id="saved" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8 hidden">
+        <div id="saved" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-8 hidden">
 
 
             <article th:each="post : ${profile.savedPosts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -209,29 +224,42 @@
                             <i class="far fa-share-square text-lg"></i>
                             <span class="text-sm">Share</span>
                         </button>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
+                            <i class="fa fa-bookmark-o text-lg"></i>
+                            <span class="text-sm">Save</span>
+                        </button>
                     </div>
                     <div id="comments2" class="hidden border-t border-gray-100 pt-3">
-                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                        <div th:each="comments : ${profile}" class="space-y-2 mb-3">
+
                             <div class="mt-4">
                                 <p class="font-semibold text-gray-700">Comments:</p>
+
                                 <div th:if="${#lists.isEmpty(post.comments)}">
                                     <p class="text-gray-400 text-sm">No comments yet.</p>
                                 </div>
-                                <div th:each="comment : ${post.comments}"
-                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
-                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
-                                         alt="User" class="w-8 h-8 rounded-full object-cover">
-                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment
-                                        text</p>
-                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
-                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+
+                                <!-- Scrollable Comment List -->
+                                <div class="max-h-48 min-h-[4rem] overflow-y-auto pr-2 space-y-2">
+                                    <div th:each="comment : ${post.comments}" class="flex items-start border-t pt-2">
+                                        <img th:src="@{/api/v1/image/{id}(id=${comment.profile_id})}"
+                                             alt="User" class="w-8 h-8 rounded-full object-cover mt-1">
+                                        <p class="text-sm text-gray-700 pl-2 flex-1" th:text="${comment.comment}">
+                                            Comment text</p>
+                                        <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                        <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Comment Input -->
                         <div class="flex gap-2">
-                            <input type="text" placeholder="Add a comment..."
+                            <img th:src="@{/api/v1/image}" class="rounded-full w-8 h-8" alt="Post">
+                            <input width="150px" height="50px" id="comment_text1" type="text" placeholder="Write a comment..."
                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                            <button id="comment_send1"
+                                    class="text-blue-600 rounded-full hover:bg-white-600 transition-colors">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
@@ -242,7 +270,7 @@
 
 
         <!-- Tagged Posts -->
-        <div id="tagged" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-8 hidden">
+        <div id="tagged" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-8 hidden">
 
             <article th:each="post : ${profile.taggedPosts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="p-4">
@@ -277,27 +305,36 @@
                         </button>
                     </div>
                     <div id="comments3" class="hidden border-t border-gray-100 pt-3">
-                        <div th:each="comments : ${profile.posts}" class="space-y-2 mb-3 max-h-42">
+                        <div th:each="comments : ${profile}" class="space-y-2 mb-3">
+
                             <div class="mt-4">
                                 <p class="font-semibold text-gray-700">Comments:</p>
+
                                 <div th:if="${#lists.isEmpty(post.comments)}">
                                     <p class="text-gray-400 text-sm">No comments yet.</p>
                                 </div>
-                                <div th:each="comment : ${post.comments}"
-                                     class="flex border-t pt-2 mt-2 h-20 overflow-y-auto">
-                                    <img th:src="@{/api/v1/image/{id}(id=${comments.profile_id})}"
-                                         alt="User" class="w-8 h-8 rounded-full object-cover">
-                                    <p class="text-sm text-gray-700 pl-2" th:text="${comment.comment}">Comment
-                                        text</p>
-                                    <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
-                                    <span class="text-sm" th:text="${comment.comment_likes}"></span>
+
+                                <!-- Scrollable Comment List -->
+                                <div class="max-h-48 min-h-[4rem] overflow-y-auto pr-2 space-y-2">
+                                    <div th:each="comment : ${post.comments}" class="flex items-start border-t pt-2">
+                                        <img th:src="@{/api/v1/image/{id}(id=${comment.profile_id})}"
+                                             alt="User" class="w-8 h-8 rounded-full object-cover mt-1">
+                                        <p class="text-sm text-gray-700 pl-2 flex-1" th:text="${comment.comment}">
+                                            Comment text</p>
+                                        <i onclick="toggleLike(this)" class="far fa-heart text-sm px-2"></i>
+                                        <span class="text-sm" th:text="${comment.comment_likes}"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Comment Input -->
                         <div class="flex gap-2">
-                            <input type="text" placeholder="Add a comment..."
+                            <img th:src="@{/api/v1/image}" class="rounded-full w-8 h-8" alt="Post">
+                            <input width="150px" height="50px" id="comment_text2" type="text" placeholder="Write a comment..."
                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <button class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors">
+                            <button id="comment_send2"
+                                    class="text-blue-600 rounded-full hover:bg-white-600 transition-colors">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
