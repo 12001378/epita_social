@@ -32,8 +32,8 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
   servlet:
     multipart:
-      max-file-size: 30MB
-      max-request-size: 30MB
+      max-file-size: 50MB
+      max-request-size: 60MB
       enabled: true
 server:
   port: 8080

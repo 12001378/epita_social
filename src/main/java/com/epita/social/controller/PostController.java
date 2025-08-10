@@ -50,8 +50,8 @@ public class PostController {
         return postService.getPostById(post_id);
     }
 
-    @PostMapping(value = "/post/typ={type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Post addPost(@RequestPart("file") MultipartFile file, @PathVariable("type") String type,
+    @PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Post addPost(@RequestPart("file") List<MultipartFile> file,
                         @RequestPart("post") String postJson, OAuth2AuthenticationToken user) throws Exception {
         var userDetails = user.getPrincipal().getAttributes();
         String email = userDetails.get("email").toString();
@@ -61,7 +61,7 @@ public class PostController {
         User user2 = userService.findById(user1.getUserId());
         Profile profile = profileRepo.findByUser(user2);
         ProfileDTO profileDTO = profileMapper.profileToProfileDTO(profile);
-        return postService.addPost(post, profileDTO, file, type);
+        return postService.addPost(post, profileDTO, file);
     }
 
     @GetMapping("/feed")
@@ -132,8 +132,6 @@ public class PostController {
         postService.savePost(post_id, user1.getUserId());
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
 
 
 }

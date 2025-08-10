@@ -8,6 +8,8 @@
     <link rel="icon" type="image/x-icon" th:href="@{/images/logo.png}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <style>
@@ -126,8 +128,23 @@
         <!-- Post Grid -->
         <div id="posts" data-content class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-8">
             <article th:each="post : ${profile.posts}" class="bg-white rounded-lg shadow-sm overflow-hidden">
-                <img th:src="${post.image}" alt="Post"
-                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div id="postCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="url, iterStat : ${post.mediaUrls}"
+                             th:classappend="${iterStat.index == 0} ? 'active' : ''"
+                             class="carousel-item p-3">
+                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                        </div>
+                    </div>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon text-black-600" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-next" type="button" data-bs-target="#postCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
                 <div class="px-4 pb-4">
                     <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
                     <div class="flex items-center gap-6 mb-3">
@@ -200,13 +217,29 @@
                         <img th:src="@{/api/v1/image/{id}(id = ${post.profile_id})}" alt="User"
                              class="w-10 h-10 rounded-full object-cover">
                         <div>
-                            <h3 class="font-semibold text-gray-900">omprakash</h3>
-                            <p class="text-sm text-gray-500">2 hours ago</p>
+                            <input type="hidden" th:value="${post.profile_id}" id="profileId2">
+                            <h3  class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
+                            <p class="text-sm text-gray-500" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></p>
                         </div>
                     </div>
                 </div>
-                <img th:src="${post.image}" alt="Post"
-                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div id="postCarousel2" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="url, iterStat : ${post.mediaUrls}"
+                             th:classappend="${iterStat.index == 0} ? 'active' : ''"
+                             class="carousel-item p-3">
+                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                        </div>
+                    </div>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon text-black-600" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-next" type="button" data-bs-target="#postCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
                 <div class="px-4 pb-4">
                     <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
                     <div class="flex items-center gap-6 mb-3">
@@ -278,14 +311,30 @@
                         <img th:src="@{/api/v1/image/{id}(id = ${post.profile_id})}" alt="User"
                              class="w-10 h-10 rounded-full object-cover">
                         <div>
-                            <h3 class="font-semibold text-gray-900">omprakash</h3>
-                            <p class="text-sm text-gray-500">2 hours ago</p>
+                            <input type="hidden" th:value="${post.profile_id}" id="profileId">
+                            <h3  class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
+                            <p class="text-sm text-gray-500" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></p>
                         </div>
                     </div>
                 </div>
 
-                <img th:src="${post.image}" alt="Post"
-                     class="w-full h-64 sm:h-80 object-cover rounded-lg">
+                <div id="postCarousel3" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="url, iterStat : ${post.mediaUrls}"
+                             th:classappend="${iterStat.index == 0} ? 'active' : ''"
+                             class="carousel-item p-3">
+                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                        </div>
+                    </div>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon text-black-600" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-next" type="button" data-bs-target="#postCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
                 <div class="px-4 pb-4">
                     <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
                     <div class="flex items-center gap-6 mb-3">

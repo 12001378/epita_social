@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PostService {
-    Post addPost(Post post, ProfileDTO profile , MultipartFile file, String type) throws Exception;
+    Post addPost(Post post, ProfileDTO profile , List<MultipartFile> file) throws Exception;
     void deletePost(UUID postId) throws Exception;
     Post getPostById(UUID postId) throws Exception;
     List<Post> getAllPosts() throws Exception;

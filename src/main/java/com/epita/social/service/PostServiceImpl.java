@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -34,13 +35,14 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public Post addPost(Post post, ProfileDTO profile, MultipartFile file, String type) throws Exception {
-        String media_url = cloudinaryService.upload(file, type);
-        if (type.equals("image")) {
-            post.setImage(media_url);
-        } else {
-            post.setVideo(media_url);
+    public Post addPost(Post post, ProfileDTO profile, List<MultipartFile> file) throws Exception {
+        List<String> media_url_list = new ArrayList<>();
+        String media_url = null;
+        for (MultipartFile multipartFile : file) {
+           media_url = cloudinaryService.upload_media_url(multipartFile);
+           media_url_list.add(media_url);
         }
+        post.setMediaUrls(media_url_list);
         post.setProfile_id(profile.getProfileId());
         post.setCaption(post.getCaption());
         post.setCreatedAt(LocalDateTime.now());

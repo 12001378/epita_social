@@ -25,6 +25,9 @@ public class Post {
 
     private String video;
 
+    @ElementCollection
+    private List<String> mediaUrls;
+
     private String location;
 
     private LocalDateTime createdAt;
