@@ -146,14 +146,19 @@
                     </button>
                 </div>
                 <div class="px-4 pb-4">
-                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <p class="text-gray-800 mb-3 caption-text" th:id="'caption-' + ${post.post_id}">
+                        <span th:text="${post.caption.length() > 20} ? ${post.caption.substring(0,20)} + '...' : ${post.caption}"></span>
+                        <a href="#" th:if="${post.caption.length() > 20}"
+                           th:attr="data-fullcaption=${post.caption}"
+                           onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
+                    </p>
                     <div class="flex items-center gap-6 mb-3">
                         <button onclick="toggleLike(this)"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
                             <i class="far fa-heart text-lg"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
-                        <button onclick="toggleComments('comments1')"
+                        <button th:attr="onclick=|toggleComments('comments${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
                             <i class="far fa-comment text-lg"></i>
                             <span class="text-sm" th:text="${post.getComments().size()}">5</span>
@@ -168,7 +173,7 @@
 
 
                     </div>
-                    <div id="comments1" class="hidden border-t border-gray-100 pt-3">
+                    <div th:id="comments+${post.post_id}" class="hidden border-t border-gray-100 pt-3">
                         <div th:each="comments : ${profile}" class="space-y-2 mb-3">
 
                             <div class="mt-4">
@@ -218,7 +223,7 @@
                              class="w-10 h-10 rounded-full object-cover">
                         <div>
                             <input type="hidden" th:value="${post.profile_id}" id="profileId2">
-                            <h3  class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
+                            <h3  class="username font-semibold text-gray-900" th:text="${post.author}"></h3>
                             <p class="text-sm text-gray-500" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></p>
                         </div>
                     </div>
@@ -241,14 +246,19 @@
                     </button>
                 </div>
                 <div class="px-4 pb-4">
-                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <p class="text-gray-800 mb-3 caption-text" th:id="'caption-' + ${post.post_id}">
+                        <span th:text="${post.caption.length() > 20} ? ${post.caption.substring(0,20)} + '...' : ${post.caption}"></span>
+                        <a href="#" th:if="${post.caption.length() > 20}"
+                           th:attr="data-fullcaption=${post.caption}"
+                           onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
+                    </p>
                     <div class="flex items-center gap-6 mb-3">
                         <button onclick="toggleLike(this)"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
                             <i class="far fa-heart text-lg"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
-                        <button onclick="toggleComments('comments2')"
+                        <button th:attr="onclick=|toggleComments('saved-comments${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
                             <i class="far fa-comment text-lg"></i>
                             <span class="text-sm" th:text="${post.getComments().size()}">5</span>
@@ -262,7 +272,7 @@
                             <span class="text-sm">Save</span>
                         </button>
                     </div>
-                    <div id="comments2" class="hidden border-t border-gray-100 pt-3">
+                    <div th:id="saved-comments+${post.post_id}" class="hidden border-t border-gray-100 pt-3">
                         <div th:each="comments : ${profile}" class="space-y-2 mb-3">
 
                             <div class="mt-4">
@@ -312,7 +322,7 @@
                              class="w-10 h-10 rounded-full object-cover">
                         <div>
                             <input type="hidden" th:value="${post.profile_id}" id="profileId">
-                            <h3  class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
+                            <h3  class="username font-semibold text-gray-900" th:text="${post.author}"></h3>
                             <p class="text-sm text-gray-500" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></p>
                         </div>
                     </div>
@@ -336,14 +346,19 @@
                     </button>
                 </div>
                 <div class="px-4 pb-4">
-                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <p class="text-gray-800 mb-3 caption-text" th:id="'caption-' + ${post.post_id}">
+                        <span th:text="${post.caption.length() > 20} ? ${post.caption.substring(0,20)} + '...' : ${post.caption}"></span>
+                        <a href="#" th:if="${post.caption.length() > 20}"
+                           th:attr="data-fullcaption=${post.caption}"
+                           onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
+                    </p>
                     <div class="flex items-center gap-6 mb-3">
                         <button onclick="toggleLike(this)"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
                             <i class="far fa-heart text-lg"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
-                        <button onclick="toggleComments('comments3')"
+                        <button th:attr="onclick=|toggleComments('tagged-comments${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
                             <i class="far fa-comment text-lg"></i>
                             <span class="text-sm" th:text="${post.getComments().size()}">5</span>
@@ -353,7 +368,7 @@
                             <span class="text-sm">Share</span>
                         </button>
                     </div>
-                    <div id="comments3" class="hidden border-t border-gray-100 pt-3">
+                    <div th:id="tagged-comments+${post.post_id}" class="hidden border-t border-gray-100 pt-3">
                         <div th:each="comments : ${profile}" class="space-y-2 mb-3">
 
                             <div class="mt-4">

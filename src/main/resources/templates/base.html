@@ -536,7 +536,7 @@
                 formData.append('file', file);
             });
 
-            formData.append("post", new Blob([JSON.stringify(post)], { type: "application/json" }));
+            formData.append("post", new Blob([JSON.stringify(post)], {type: "application/json"}));
 
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');
@@ -564,7 +564,7 @@
 
     });
 
-    $('.username').each(function() {
+    $('.username').each(function () {
         const usernameElem = $(this);
         const profile_id = $('#profileId').val();
 
@@ -588,7 +588,6 @@
             }
         });
     });
-
 
 
 </script>
@@ -769,6 +768,12 @@
 
     clearMainPreview();
 
+    function expandCaption(event, element) {
+        event.preventDefault();
+        const fullCaption = element.getAttribute('data-fullcaption');
+        const parent = element.parentElement;
+        parent.innerHTML = fullCaption;
+    }
 
 </script>
 

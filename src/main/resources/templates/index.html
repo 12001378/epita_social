@@ -203,7 +203,7 @@
         <div class="space-y-6 mt-24 md:mt-0">
 
             <!-- static block-->
-            <div class="space-y-4 mt-10 hidden">
+            <div class="space-y-4 mt-10 lg:hidden md:hidden">
                 <h1>hello all iam here</h1>
             </div>
             <article class="bg-white rounded-lg shadow-sm p-4 space-y-4 overflow-hidden">
@@ -253,7 +253,7 @@
             </article>
 
             <!-- feed -->
-            <article th:each="post : ${feed}" class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <article th:each="post,counter : ${feed}" class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <input type="hidden" th:value="${post.post_id}" id="post_id"/>
                 <div class="p-4">
                     <div class="flex items-center gap-3 mb-3">
@@ -262,7 +262,7 @@
                                 class="w-10 h-10 rounded-full object-cover"></a>
                         <div>
                             <input type="hidden" th:value="${post.profile_id}" id="profileId">
-                            <h3  class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
+                            <h3 class="username font-semibold text-gray-900" data-profile-id="${post.profileId}"></h3>
                             <p class="text-sm text-gray-500"
                                th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></p>
                         </div>
@@ -273,28 +273,36 @@
                         <div th:each="url, iterStat : ${post.mediaUrls}"
                              th:classappend="${iterStat.index == 0} ? 'active' : ''"
                              class="carousel-item p-3">
-                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image"/>
                         </div>
                     </div>
-                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button"
+                            data-bs-target="#postCarousel" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon text-black-600" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-next" type="button" data-bs-target="#postCarousel" data-bs-slide="next">
+                    <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-next" type="button"
+                            data-bs-target="#postCarousel" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
 
                 <div class="px-4 pb-4">
-                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>
+                    <!--                    <p class="text-gray-800 mb-3" th:text="${post.caption}"></p>-->
+                    <p class="text-gray-800 mb-3 caption-text" th:id="'caption-' + ${post.post_id}">
+                        <span th:text="${post.caption.length() > 20} ? ${post.caption.substring(0,20)} + '...' : ${post.caption}"></span>
+                        <a href="#" th:if="${post.caption.length() > 20}"
+                           th:attr="data-fullcaption=${post.caption}"
+                           onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
+                    </p>
                     <div class="flex items-center gap-6 mb-3">
                         <button onclick="toggleLikeMain(this)"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
                             <i class="far fa-heart text-lg"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
-                        <button onclick="toggleComments('comments1')"
+                        <button th:attr="onclick=|toggleComments('comments${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors">
                             <i class="far fa-comment text-lg"></i>
                             <span class="text-sm" th:text="${post.getComments().size()}">5</span>
@@ -304,8 +312,8 @@
                             <span class="text-sm">Share</span>
                         </button>
                     </div>
-                    <div id="comments1" class="hidden border-t border-gray-100 pt-3">
-                        <div th:each="comments : ${feed}" class="space-y-2 mb-3">
+                    <div th:id="'comments' + ${post.post_id}" class="hidden border-t border-gray-100 pt-3">
+                        <div class="space-y-2 mb-3">
 
                             <div class="mt-4">
                                 <p class="font-semibold text-gray-700">Comments:</p>
@@ -654,11 +662,10 @@
         });
     });
 
-    $('.username').each(function() {
+    $('.username').each(function () {
         const usernameElem = $(this);
         const profile_id = $('#profileId').val();
 
-        alert(profile_id)
 
         $.ajax({
             url: `/api/v1/getProfileDetails/${profile_id}`,
@@ -678,7 +685,6 @@
             }
         });
     });
-
 
 
     // const profile_id = $('#profileId').val();
@@ -703,6 +709,12 @@
     //         alert('something went wrong, please try Again later')
     //     }
     // })
+    function expandCaption(event, element) {
+        event.preventDefault();
+        const fullCaption = element.getAttribute('data-fullcaption');
+        const parent = element.parentElement;
+        parent.innerHTML = fullCaption;
+    }
 
 
     function previewStory(input) {
@@ -891,7 +903,6 @@
         $('#follow-button').on('click', function () {
 
             const profile_id = $('#profile_id').val();
-            alert(profile_id);
 
             const formData = new FormData();
             formData.append('profile_id', profile_id);
@@ -933,9 +944,9 @@
                 comment: comment_text
             }
 
-            alert("post_id" + post_id +
-                "comment" + comment_text +
-                "formData" + payload.toString());
+            // alert("post_id" + post_id +
+            //     "comment" + comment_text +
+            //     "formData" + payload.toString());
 
             $.ajax({
                 url: `/api/v1/comment/${post_id}`,
@@ -1040,7 +1051,7 @@
             for (let i = 0; i < files.length; i++) {
                 names.push(files[i].name);
             }
-            alert("Selected files: " + names.join(', '));
+            // alert("Selected files: " + names.join(', '));
 
             const caption = $('#caption').val().trim();
 
@@ -1054,7 +1065,7 @@
                 formData.append('file', file);
             });
 
-            formData.append("post", new Blob([JSON.stringify(post)], { type: "application/json" }));
+            formData.append("post", new Blob([JSON.stringify(post)], {type: "application/json"}));
 
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');

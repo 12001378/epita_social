@@ -39,5 +39,6 @@ public class Post {
     @ManyToMany
     private Set<User> liked = new HashSet<>();
     private boolean archived = false;
+    private String author;
 
 }

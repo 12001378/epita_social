@@ -47,6 +47,7 @@ public class PostServiceImpl implements PostService {
         post.setCaption(post.getCaption());
         post.setCreatedAt(LocalDateTime.now());
         post.setLocation(post.getLocation());
+        post.setAuthor(profile.getUser().getFirstName()+" "+profile.getUser().getLastName());
         Post saved_post = postRepo.save(post);
 
         Profile profile1 = profileService.getProfile(profile.getProfileId());
