@@ -52,11 +52,11 @@
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
             </button>
-            <button onclick="toggleModal()"
-                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                <i class="fas fa-plus-square text-xl"></i>
-                <span class="text-md mt-1">Post</span>
-            </button>
+<!--            <button id="openModalBtn"-->
+<!--                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">-->
+<!--                <i class="fas fa-plus-square text-xl"></i>-->
+<!--                <span class="text-md mt-1">Post</span>-->
+<!--            </button>-->
             <button onclick=""
                     class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
                 <i class="fas fa-comments text-lg"></i>
@@ -139,6 +139,47 @@
     </div>
 </div>
 
+<!-- Modal backdrop -->
+<div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <!-- Modal content -->
+    <div class="bg-white rounded-xl shadow-md max-w-md w-full p-6 relative">
+        <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-2xl font-bold">
+            &times;
+        </button>
+
+        <h1 class="text-2xl font-semibold mb-4 text-center">Create Post</h1>
+
+        <textarea id="caption" rows="3" placeholder="Write a caption..."
+                  class="border border-gray-300 rounded-md p-3 resize-none mb-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+
+        <!-- Big preview area -->
+        <div id="mainPreview"
+             class="w-full h-72 bg-gray-100 rounded-lg flex items-center justify-center mb-3 relative overflow-hidden">
+            <span class="text-gray-400 select-none">No media selected</span>
+        </div>
+
+
+        <!-- Thumbnails carousel -->
+        <div id="thumbsContainer"
+             class="flex space-x-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mb-6 px-1">
+            <!-- Thumbnails inserted here -->
+        </div>
+        <!-- Upload area -->
+        <label style="margin: 10px" for="fileInput" id="dropZone"
+               class="cursor-pointer border-2 border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-500 hover:border-blue-500 hover:bg-blue-50 transition select-none mb-6">
+            Drag & drop images/videos or click to upload
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" class="hidden"/>
+        </label>
+
+
+        <button id="submitBtnPost"
+                class="bg-blue-600 text-white rounded-md py-2 font-semibold hover:bg-blue-700 transition w-full">
+            Post
+        </button>
+
+    </div>
+</div>
+
 <!-- Notifications Popup -->
 <div id="notificationsPopup"
      class="fixed top-16 right-4 bg-white rounded-lg shadow-lg border border-gray-200 w-80 max-h-96 overflow-y-auto z-50 hidden">
@@ -170,7 +211,7 @@
             <i class="fas fa-bell text-lg"></i>
             <span class="text-xs mt-1">Notification</span>
         </a>
-        <button onclick="toggleModal()" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
+        <button id="openModalBtn" class="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-500">
             <i class="fas fa-plus-square text-xl"></i>
             <span class="text-xs mt-1">Post</span>
         </button>

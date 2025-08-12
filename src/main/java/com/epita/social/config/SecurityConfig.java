@@ -6,16 +6,17 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-//    private final CustomLogoutHandler logoutHandler;
-//
-//    public SecurityConfig(CustomLogoutHandler logoutHandler) {
-//        this.logoutHandler = logoutHandler;
-//    }
+    private final CustomLogoutHandler logoutHandler;
+
+    public SecurityConfig(CustomLogoutHandler logoutHandler) {
+        this.logoutHandler = logoutHandler;
+    }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,7 +31,10 @@ public class SecurityConfig {
                 )
                 .logout(
                         logout -> logout
-                        .logoutSuccessUrl("/").invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID")
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
+                                .addLogoutHandler(logoutHandler)
+                                .logoutSuccessUrl("/")
+                                .permitAll()
                 )
                 .oauth2Login(Customizer.withDefaults())
                 .build();
