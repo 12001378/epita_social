@@ -4,6 +4,7 @@ import com.epita.social.model.Post;
 import com.epita.social.model.Profile;
 import com.epita.social.model.Story;
 import com.epita.social.model.User;
+import com.epita.social.payload.DTO.ProfileStoriesDto;
 import com.epita.social.repo.ProfileRepo;
 import com.epita.social.service.*;
 import lombok.RequiredArgsConstructor;
@@ -60,10 +61,20 @@ public class IndexController {
             Profile profile1 = profileRepo.findByUser(existing_user1);
             model.addAttribute("profile", profile);
 //            List<Post> feed = postService.getFeed(user);
+
+
             List<Post> feed = postService.getAllPosts();
+            // Set likedByCurrentUser and savedByCurrentUser for each post
+            Set<Post> savedPosts = profile1.getSavedPosts();
+            for (Post post : feed) {
+                post.setLikedByCurrentUser(
+                    post.getLiked().stream().anyMatch(u -> u.getEmail().equals(email))
+                );
+                post.setSavedByCurrentUser(savedPosts != null && savedPosts.contains(post));
+            }
             model.addAttribute("feed", feed);
 
-            List<Story> storyList = storyService.getStories();
+            Set<ProfileStoriesDto> storyList = storyService.getStoriesOfFollowersAndFollowing(profile1.getProfile_id());
             model.addAttribute("storyList", storyList);
 
         }

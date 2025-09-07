@@ -1,5 +1,11 @@
+
+
 package com.epita.social.service;
 
+import com.epita.social.events.CommentEvent;
+import com.epita.social.events.LikeEvent;
+import com.epita.social.events.NotificationEvent;
+import com.epita.social.events.PostEvent;
 import com.epita.social.model.Comments;
 import com.epita.social.model.Post;
 import com.epita.social.model.Profile;
@@ -32,6 +38,7 @@ public class PostServiceImpl implements PostService {
     private final ProfileRepo profileRepo;
     private final CloudinaryService cloudinaryService;
     private final CommentsRepo commentsRepo;
+    private final KafkaProducerService kafkaProducerService;
 
 
     @Override
@@ -53,12 +60,40 @@ public class PostServiceImpl implements PostService {
         Profile profile1 = profileService.getProfile(profile.getProfileId());
         Set<Post> profile_post = profile1.getPosts();
         profile_post.add(saved_post);
+        
+        // Send Kafka event for post creation
+        PostEvent postEvent = new PostEvent(
+            saved_post.getPost_id(),
+            profile.getProfileId(),
+            saved_post.getAuthor(),
+            saved_post.getCaption(),
+            saved_post.getLocation(),
+            saved_post.getMediaUrls(),
+            saved_post.getCreatedAt(),
+            PostEvent.EventType.POST_CREATED
+        );
+        kafkaProducerService.sendPostEvent(postEvent);
+        
         return saved_post;
     }
 
     @Override
     public void deletePost(UUID postId) throws Exception {
+        Post post = getPostById(postId);
         postRepo.deleteById(postId);
+        
+        // Send Kafka event for post deletion
+        PostEvent postEvent = new PostEvent(
+            post.getPost_id(),
+            post.getProfile_id(),
+            post.getAuthor(),
+            post.getCaption(),
+            post.getLocation(),
+            post.getMediaUrls(),
+            post.getCreatedAt(),
+            PostEvent.EventType.POST_DELETED
+        );
+        kafkaProducerService.sendPostEvent(postEvent);
     }
 
     @Override
@@ -68,7 +103,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<Post> getAllPosts() throws Exception {
-        return postRepo.findAll();
+    List<Post> posts = postRepo.findAll();
+    posts.sort((a, b) -> {
+        if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+        if (a.getCreatedAt() == null) return 1;
+        if (b.getCreatedAt() == null) return -1;
+        return b.getCreatedAt().compareTo(a.getCreatedAt());
+    });
+    return posts;
     }
 
     @Override
@@ -76,6 +118,19 @@ public class PostServiceImpl implements PostService {
         Post archivePost = getPostById(postId);
         archivePost.setArchived(true);
         postRepo.save(archivePost);
+        
+        // Send Kafka event for post archival
+        PostEvent postEvent = new PostEvent(
+            archivePost.getPost_id(),
+            archivePost.getProfile_id(),
+            archivePost.getAuthor(),
+            archivePost.getCaption(),
+            archivePost.getLocation(),
+            archivePost.getMediaUrls(),
+            archivePost.getCreatedAt(),
+            PostEvent.EventType.POST_ARCHIVED
+        );
+        kafkaProducerService.sendPostEvent(postEvent);
     }
 
     @Override
@@ -84,6 +139,29 @@ public class PostServiceImpl implements PostService {
         User user = userService.findById(userId);
         Set<User> likes = post.getLiked();
         likes.add(user);
+        
+        // Send Kafka event for post like
+        LikeEvent likeEvent = new LikeEvent(
+            postID,
+            userId,
+            user.getFirstName() + " " + user.getLastName(),
+            LocalDateTime.now(),
+            LikeEvent.EventType.POST_LIKED
+        );
+        kafkaProducerService.sendLikeEvent(likeEvent);
+        
+        // Send notification event to post owner
+        if (!post.getProfile_id().equals(profileRepo.findByUser(user).getProfile_id())) {
+            NotificationEvent notificationEvent = new NotificationEvent(
+                post.getProfile_id(),
+                userId,
+                user.getFirstName() + " " + user.getLastName() + " liked your post",
+                NotificationEvent.NotificationType.POST_LIKED,
+                postID,
+                LocalDateTime.now()
+            );
+            kafkaProducerService.sendNotificationEvent(notificationEvent);
+        }
     }
 
     @Override
@@ -96,6 +174,31 @@ public class PostServiceImpl implements PostService {
         comment.setProfile_id(profile.getProfile_id());
         Comments comments1 = commentService.addComment(comment, post, profile);
         comments.add(comments1);
+        
+        // Send Kafka event for comment creation
+        CommentEvent commentEvent = new CommentEvent(
+            comments1.getCommentId(),
+            postId,
+            profile.getProfile_id(),
+            comments1.getComment(),
+            user.getFirstName() + " " + user.getLastName(),
+            LocalDateTime.now(),
+            CommentEvent.EventType.COMMENT_CREATED
+        );
+        kafkaProducerService.sendCommentEvent(commentEvent);
+        
+        // Send notification event to post owner
+        if (!post.getProfile_id().equals(profile.getProfile_id())) {
+            NotificationEvent notificationEvent = new NotificationEvent(
+                post.getProfile_id(),
+                userId,
+                user.getFirstName() + " " + user.getLastName() + " commented on your post",
+                NotificationEvent.NotificationType.POST_COMMENTED,
+                postId,
+                LocalDateTime.now()
+            );
+            kafkaProducerService.sendNotificationEvent(notificationEvent);
+        }
     }
 
     @Override
@@ -113,11 +216,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void savePost(UUID post_id, UUID user_id) throws Exception {
-        User user = userService.findById(user_id);
-        Profile profile = profileRepo.findByUser(user);
-        Post post = getPostById(post_id);
-        Set<Post> saved_post = profile.getSavedPosts();
-        saved_post.add(post);
+    User user = userService.findById(user_id);
+    Profile profile = profileRepo.findByUser(user);
+    Post post = getPostById(post_id);
+    Set<Post> saved_post = profile.getSavedPosts();
+    saved_post.add(post);
+    profileRepo.save(profile);
     }
 
     @Override
@@ -130,7 +234,6 @@ public class PostServiceImpl implements PostService {
         Profile currentProfile = profileRepo.findByUser(currentUser);
 
         Set<User> followingUsers = currentProfile.getFollowing();
-        List<Post> allPosts = getAllPosts();
         List<UUID> followingProfileIds = followingUsers.stream()
                 .map(user -> {
                     try {
@@ -141,7 +244,39 @@ public class PostServiceImpl implements PostService {
                 })
                 .collect(Collectors.toList());
 
-        return postRepo.findFeedPosts(followingProfileIds, currentProfile.getProfile_id());
+        List<Post> feedPosts = postRepo.findFeedPosts(followingProfileIds, currentProfile.getProfile_id());
+        Set<Post> savedPosts = currentProfile.getSavedPosts();
+        for (Post post : feedPosts) {
+            post.setSavedByCurrentUser(savedPosts.contains(post));
+        }
+        return feedPosts;
+    }
+    @Override
+    public void RemoveLike(UUID postID, UUID userId) throws Exception {
+        Post post = getPostById(postID);
+        User user = userService.findById(userId);
+        Set<User> likes = post.getLiked();
+        likes.remove(user);
+        
+        // Send Kafka event for post unlike
+        LikeEvent likeEvent = new LikeEvent(
+            postID,
+            userId,
+            user.getFirstName() + " " + user.getLastName(),
+            LocalDateTime.now(),
+            LikeEvent.EventType.POST_UNLIKED
+        );
+        kafkaProducerService.sendLikeEvent(likeEvent);
+    }
+
+    @Override
+    public void unsavePost(UUID post_id, UUID user_id) throws Exception {
+    User user = userService.findById(user_id);
+    Profile profile = profileRepo.findByUser(user);
+    Post post = getPostById(post_id);
+    Set<Post> saved_post = profile.getSavedPosts();
+    saved_post.remove(post);
+    profileRepo.save(profile);
     }
 
 

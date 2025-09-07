@@ -1,3 +1,4 @@
+
 package com.epita.social.controller;
 
 import com.epita.social.mapper.profileMapper;
@@ -134,4 +135,23 @@ public class PostController {
     }
 
 
+
+
+    @PostMapping("/unlike/{post_id}")
+    public ResponseEntity<?> unlike_post(@PathVariable("post_id") UUID post_id, OAuth2AuthenticationToken user_auth) throws Exception {
+        var userDetails = user_auth.getPrincipal().getAttributes();
+        String email = userDetails.get("email").toString();
+        User user1 = userService.findByEmail(email);
+        postService.RemoveLike(post_id, user1.getUserId());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+     @PostMapping("/unsave/{post_id}")
+    public ResponseEntity<?> unsave(@PathVariable("post_id") UUID post_id, OAuth2AuthenticationToken user_auth) throws Exception {
+        var userDetails = user_auth.getPrincipal().getAttributes();
+        String email = userDetails.get("email").toString();
+        User user1 = userService.findByEmail(email);
+        postService.unsavePost(post_id, user1.getUserId());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

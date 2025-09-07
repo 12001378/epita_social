@@ -2,6 +2,7 @@ package com.epita.social.controller;
 
 import com.epita.social.model.Profile;
 import com.epita.social.model.User;
+import com.epita.social.model.Post;
 import com.epita.social.repo.ProfileRepo;
 import com.epita.social.service.ProfileService;
 import com.epita.social.service.UserService;
@@ -39,6 +40,42 @@ public class ProfileController {
     @GetMapping("/profile/{profile_id}")
     public String getProfile(@PathVariable("profile_id") UUID profile_id, Model model, OAuth2AuthenticationToken token) throws Exception {
         Profile profile =  profileService.getProfile(profile_id);
+        // Get current user email and User object
+        var userDetails = token.getPrincipal().getAttributes();
+        String email = userDetails.get("email").toString();
+        User currentUser = userService.findByEmail(email);
+
+        // Get posts, savedPosts, taggedPosts from profile
+        Set<Post> posts = profile.getPosts();
+        Set<Post> savedPosts = profile.getSavedPosts();
+        Set<Post> taggedPosts = profile.getTaggedPosts();
+
+        // Set likedByCurrentUser and savedByCurrentUser for posts
+        if (posts != null) {
+            for (Post post : posts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+                post.setSavedByCurrentUser(savedPosts != null && savedPosts.contains(post));
+            }
+        }
+
+        // Set likedByCurrentUser and savedByCurrentUser for saved posts
+        if (savedPosts != null) {
+            for (Post post : savedPosts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+                post.setSavedByCurrentUser(true);
+            }
+        }
+
+        // Set likedByCurrentUser and savedByCurrentUser for tagged posts
+        if (taggedPosts != null) {
+            for (Post post : taggedPosts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+                post.setSavedByCurrentUser(savedPosts != null && savedPosts.contains(post));
+            }
+        }
         model.addAttribute("profile", profile);
         boolean follow_btn = profileService.followButton(profile_id,token);
         model.addAttribute("follow_btn", follow_btn);
@@ -59,17 +96,44 @@ public class ProfileController {
     public String getUserProfile(OAuth2AuthenticationToken user_auth, Model model) throws Exception {
         var userDetails = user_auth.getPrincipal().getAttributes();
         String email = userDetails.get("email").toString();
-        User user1 = userService.findByEmail(email);
+        User currentUser = userService.findByEmail(email);
 
-        Profile profile = profileRepo.findByUser(user1);
-        model.addAttribute("user", user1);
+        Profile profile = profileRepo.findByUser(currentUser);
+
+        Set<Post> posts = profile.getPosts();
+        Set<Post> savedPosts = profile.getSavedPosts();
+        Set<Post> taggedPosts = profile.getTaggedPosts();
+
+        // Set likedByCurrentUser for posts
+        if (posts != null) {
+            for (Post post : posts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+            }
+        }
+        // Set likedByCurrentUser for saved posts
+        if (savedPosts != null) {
+            for (Post post : savedPosts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+            }
+        }
+        // Set likedByCurrentUser for tagged posts
+        if (taggedPosts != null) {
+            for (Post post : taggedPosts) {
+                boolean liked = post.getLiked().stream().anyMatch(user -> user.getEmail().equals(currentUser.getEmail()));
+                post.setLikedByCurrentUser(liked);
+            }
+        }
+
+        model.addAttribute("user", currentUser);
         model.addAttribute("profile", profile);
         return "profile";
     }
 
     @PostMapping("/profile/follow")
-    public ResponseEntity<?> addFollowers(@RequestParam("profile_id") String profile_id, OAuth2AuthenticationToken user_auth) throws Exception {
-        UUID profileId = UUID.fromString(profile_id);
+    public ResponseEntity<?> addFollowers(@RequestParam("profile_id") UUID profile_id, OAuth2AuthenticationToken user_auth) throws Exception {
+        UUID profileId = profile_id;
         var userDetails = user_auth.getPrincipal().getAttributes();
         String email = userDetails.get("email").toString();
         User user1 = userService.findByEmail(email);

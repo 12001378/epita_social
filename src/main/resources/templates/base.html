@@ -601,6 +601,7 @@
                     alert('Something went wrong: ' + (xhr.responseText || 'Please try again later.'));
                 }
             });
+
         });
 
     });
@@ -632,7 +633,56 @@
 
 
 </script>
+
 <script>
+function toggleLikeProfile(button, post_id) {
+    const token = $('meta[name="_csrf"]').attr('content');
+    const header = $('meta[name="_csrf_header"]').attr('content');
+    const icon = button.querySelector('i');
+    const count = button.querySelector('span');
+    const currentCount = parseInt(count.textContent);
+    if (icon.classList.contains('far')) {
+        // Like the post
+        $.ajax({
+            url: `/api/v1/like/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        button.classList.add('text-red-500');
+        button.classList.remove('text-gray-600');
+        count.textContent = currentCount + 1;
+    } else {
+        // Unlike the post
+        $.ajax({
+            url: `/api/v1/unlike/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        button.classList.remove('text-red-500');
+        button.classList.add('text-gray-600');
+        count.textContent = currentCount - 1;
+    }
+}
     // Modal open/close
     const openModalBtn = document.getElementById('openModalBtn');
     const modalBackdrop = document.getElementById('modalBackdrop');
@@ -815,7 +865,149 @@
         const parent = element.parentElement;
         parent.innerHTML = fullCaption;
     }
+    function toggleSaveMain(button, post_id) {
+    const token = $('meta[name="_csrf"]').attr('content');
+    const header = $('meta[name="_csrf_header"]').attr('content');
+    const icon = button.querySelector('i');
+    if (icon.classList.contains('far')) {
+        // Save the post
+        $.ajax({
+            url: `/api/v1/save/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        button.classList.add('text-yellow-500');
+    } else {
+        // Unsave the post
+        $.ajax({
+            url: `/api/v1/unsave/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+        button.classList.remove('text-yellow-500');
+    }
+}
 
+
+</script>
+<script>
+// CSRF token setup
+const token = $('meta[name="_csrf"]').attr('content');
+const header = $('meta[name="_csrf_header"]').attr('content');
+
+function toggleSaveProfile(button, post_id) {
+    const icon = button.querySelector('i');
+    if (icon.classList.contains('far')) {
+        // Save the post
+        $.ajax({
+            url: `/api/v1/save/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        icon.classList.add('text-yellow-500');
+    } else {
+        // Unsave the post
+        $.ajax({
+            url: `/api/v1/unsave/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('fas');
+        icon.classList.remove('text-yellow-500');
+        icon.classList.add('far');
+    }
+}
+</script>
+<script>
+// Example: null check for addEventListener
+const el = document.getElementById('someElementId');
+if (el) {
+  el.addEventListener('click', function() {
+    // ...
+  });
+}
+
+// Example: toggleSaveProfile function using CSRF
+function toggleSaveProfile(button, post_id) {
+    const icon = button.querySelector('i');
+    if (icon.classList.contains('far')) {
+        // Save the post
+        $.ajax({
+            url: `/api/v1/save/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        icon.classList.add('text-yellow-500');
+        button.classList.add('text-yellow-500');
+    } else {
+        // Unsave the post
+        $.ajax({
+            url: `/api/v1/unsave/${post_id}`,
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {},
+            error: function (response) {}
+        });
+        icon.classList.remove('fas');
+        icon.classList.remove('text-yellow-500');
+        icon.classList.add('far');
+        button.classList.remove('text-yellow-500');
+    }
+}
 </script>
 
 </body>

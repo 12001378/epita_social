@@ -26,6 +26,10 @@
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
 </head>
 <body class="bg-gray-100">
+
+<script>
+// CSRF token and header for AJAX
+</script>
 <!-- Navigation -->
 
 
@@ -133,7 +137,27 @@
                         <div th:each="url, iterStat : ${post.mediaUrls}"
                              th:classappend="${iterStat.index == 0} ? 'active' : ''"
                              class="carousel-item p-3">
-                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                            <!-- <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" /> -->
+                             <!-- Image -->
+                            <img th:if="${url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')}"
+                                 th:src="${url}"
+                                 class="d-block w-100 h-60 rounded-lg object-cover"
+                                 alt="Post image"/>
+
+                            <!-- Video -->
+                            <video th:if="${url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg')}"
+                                   th:src="${url}"
+                                   class="d-block w-100 h-60 rounded-lg object-cover"
+                                   controls
+                                   preload="metadata">
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <!-- Fallback -->
+                            <span th:if="${!(url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')
+                     or url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg'))}">
+        Unsupported media type
+    </span>
                         </div>
                     </div>
                     <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
@@ -153,9 +177,9 @@
                            onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
                     </p>
                     <div class="flex items-center gap-6 mb-3">
-                        <button onclick="toggleLike(this)"
+                        <button th:attr="onclick=|toggleLikeProfile(this, '${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
-                            <i class="far fa-heart text-lg"></i>
+                            <i th:classappend="${post.likedByCurrentUser} ? 'fas fa-heart text-lg text-red-500' : 'far fa-heart text-lg'"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
                         <button th:attr="onclick=|toggleComments('comments${post.post_id}')|"
@@ -167,8 +191,8 @@
                             <i class="far fa-share-square text-lg"></i>
                             <span class="text-sm">Share</span>
                         </button>
-                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
-                            <i class="fa fa-bookmark-o text-lg"></i>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition-colors" th:attr="onclick=|toggleSaveProfile(this, '${post.post_id}')|">
+                            <i th:classappend="${post.savedByCurrentUser} ? 'fas fa-bookmark text-lg text-yellow-500' : 'far fa-bookmark text-lg'"></i>
                         </button>
 
 
@@ -233,7 +257,28 @@
                         <div th:each="url, iterStat : ${post.mediaUrls}"
                              th:classappend="${iterStat.index == 0} ? 'active' : ''"
                              class="carousel-item p-3">
-                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                            <!-- <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                              -->
+                            <!-- Image -->
+                            <img th:if="${url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')}"
+                                 th:src="${url}"
+                                 class="d-block w-100 h-60 rounded-lg object-cover"
+                                 alt="Post image"/>
+
+                            <!-- Video -->
+                            <video th:if="${url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg')}"
+                                   th:src="${url}"
+                                   class="d-block w-100 h-60 rounded-lg object-cover"
+                                   controls
+                                   preload="metadata">
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <!-- Fallback -->
+                            <span th:if="${!(url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')
+                     or url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg'))}">
+        Unsupported media type
+    </span>
                         </div>
                     </div>
                     <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
@@ -253,9 +298,9 @@
                            onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
                     </p>
                     <div class="flex items-center gap-6 mb-3">
-                        <button onclick="toggleLike(this)"
+                        <button th:attr="onclick=|toggleLikeProfile(this, '${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
-                            <i class="far fa-heart text-lg"></i>
+                            <i th:classappend="${post.likedByCurrentUser} ? 'fas fa-heart text-lg text-red-500' : 'far fa-heart text-lg'"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
                         <button th:attr="onclick=|toggleComments('saved-comments${post.post_id}')|"
@@ -267,8 +312,8 @@
                             <i class="far fa-share-square text-lg"></i>
                             <span class="text-sm">Share</span>
                         </button>
-                        <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
-                            <i class="fa fa-bookmark-o text-lg"></i>
+                        <button class="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition-colors" th:attr="onclick=|toggleSaveProfile(this, '${post.post_id}')|">
+                            <i th:classappend="${post.savedByCurrentUser} ? 'fas fa-bookmark text-lg text-yellow-500' : 'far fa-bookmark text-lg'"></i>
                             <span class="text-sm">Save</span>
                         </button>
                     </div>
@@ -333,7 +378,27 @@
                         <div th:each="url, iterStat : ${post.mediaUrls}"
                              th:classappend="${iterStat.index == 0} ? 'active' : ''"
                              class="carousel-item p-3">
-                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" />
+                            <!-- <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image" /> -->
+                             <!-- Image -->
+                            <img th:if="${url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')}"
+                                 th:src="${url}"
+                                 class="d-block w-100 h-60 rounded-lg object-cover"
+                                 alt="Post image"/>
+
+                            <!-- Video -->
+                            <video th:if="${url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg')}"
+                                   th:src="${url}"
+                                   class="d-block w-100 h-60 rounded-lg object-cover"
+                                   controls
+                                   preload="metadata">
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <!-- Fallback -->
+                            <span th:if="${!(url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')
+                     or url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg'))}">
+        Unsupported media type
+    </span>
                         </div>
                     </div>
                     <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button" data-bs-target="#postCarousel" data-bs-slide="prev">
@@ -355,7 +420,7 @@
                     <div class="flex items-center gap-6 mb-3">
                         <button onclick="toggleLike(this)"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
-                            <i class="far fa-heart text-lg"></i>
+                            <i th:classappend="${post.likedByCurrentUser} ? 'fas fa-heart text-lg text-red-500' : 'far fa-heart text-lg'"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
                         <button th:attr="onclick=|toggleComments('tagged-comments${post.post_id}')|"
@@ -470,8 +535,7 @@
         </div>
     </div>
 </section>
-<script>
 
-</script>
 </body>
+
 </html>

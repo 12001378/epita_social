@@ -1,5 +1,7 @@
 package com.epita.social.service;
 
+import com.epita.social.events.FollowEvent;
+import com.epita.social.events.NotificationEvent;
 import com.epita.social.model.Post;
 import com.epita.social.model.Profile;
 import com.epita.social.model.User;
@@ -11,6 +13,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserRepo userRepo;
     private final PostRepo postRepo;
     private final UserService userService;
+    private final KafkaProducerService kafkaProducerService;
 
 
     @Override
@@ -47,6 +51,7 @@ public class ProfileServiceImpl implements ProfileService {
         existingProfile.setProfile_background(profile.getProfile_background());
         existingProfile.setProfile_picture(profile.getProfile_picture());
         existingProfile.setAccountType(profile.isAccountType());
+        existingProfile.setStory(profile.getStory());
         return profileRepo.save(existingProfile);
     }
 
@@ -84,6 +89,27 @@ public class ProfileServiceImpl implements ProfileService {
         followingUsers.add(profileViewdToFolllow.getUser());
         followers.add(follower);
 
+        // Send Kafka event for follow action
+        FollowEvent followEvent = new FollowEvent(
+            follower_id,
+            profileViewdToFolllow.getUser().getUserId(),
+            follower.getFirstName() + " " + follower.getLastName(),
+            profileViewdToFolllow.getUser().getFirstName() + " " + profileViewdToFolllow.getUser().getLastName(),
+            LocalDateTime.now(),
+            FollowEvent.EventType.USER_FOLLOWED
+        );
+        kafkaProducerService.sendFollowEvent(followEvent);
+        
+        // Send notification to the followed user
+        NotificationEvent notificationEvent = new NotificationEvent(
+            profileViewdToFolllow.getUser().getUserId(),
+            follower_id,
+            follower.getFirstName() + " " + follower.getLastName() + " started following you",
+            NotificationEvent.NotificationType.NEW_FOLLOWER,
+            profile_id,
+            LocalDateTime.now()
+        );
+        kafkaProducerService.sendNotificationEvent(notificationEvent);
     }
 
     @Override
@@ -95,6 +121,17 @@ public class ProfileServiceImpl implements ProfileService {
         Set<User> followingUsers = followingUsers(profile.getProfile_id());
         followingUsers.remove(profileViewdToFolllow.getUser());
         followers.remove(follower);
+        
+        // Send Kafka event for unfollow action
+        FollowEvent followEvent = new FollowEvent(
+            follower_id,
+            profileViewdToFolllow.getUser().getUserId(),
+            follower.getFirstName() + " " + follower.getLastName(),
+            profileViewdToFolllow.getUser().getFirstName() + " " + profileViewdToFolllow.getUser().getLastName(),
+            LocalDateTime.now(),
+            FollowEvent.EventType.USER_UNFOLLOWED
+        );
+        kafkaProducerService.sendFollowEvent(followEvent);
     }
 
     @Override

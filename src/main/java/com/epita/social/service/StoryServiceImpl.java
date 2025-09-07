@@ -4,6 +4,7 @@ import com.epita.social.exception.GlobleException;
 import com.epita.social.model.Profile;
 import com.epita.social.model.Story;
 import com.epita.social.model.User;
+import com.epita.social.payload.DTO.ProfileStoriesDto;
 import com.epita.social.repo.ProfileRepo;
 import com.epita.social.repo.StroyRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,11 +48,21 @@ public class StoryServiceImpl implements StoryService{
     @Transactional(rollbackFor = Exception.class)
     public void addStory(Story story, MultipartFile file, String type) throws Exception {
         String media_url = cloudinaryService.upload(file, type);
+        System.err.println("media_url: " + media_url);
+        System.err.println("data: " + story.toString());
+        Profile profile_story = profileService.getProfile(story.getProfileId());
         Story newStory = new Story();
         newStory.setMedia(media_url);
         newStory.setCaption(story.getCaption());
         newStory.setProfileId(story.getProfileId());
-        storyRepository.save(story);
+        newStory.setAuthor(profile_story.getUsername());
+       Story saved = storyRepository.save(newStory);
+
+        Profile profile = profileService.getProfile(saved.getProfileId());
+        List<Story> stories = new ArrayList<>();
+        stories.add(saved);
+        profile.setStory(stories);
+        profileService.updateProfile(profile,story.getProfileId());
     }
 
     @Override
@@ -85,26 +99,62 @@ public class StoryServiceImpl implements StoryService{
         }
     }
 
+//    @Override
+////    @Cache(usage = "")
+//    public Set<Set<Story>> getStoriesOfFollowersAndFollowing(UUID profile_id) throws Exception {
+//
+//        Profile profile = profileService.getProfile(profile_id);
+//        Set<User> following = profile.getFollowing();
+//        Set<User> followers = profile.getFollowers();
+//         following.addAll(followers);
+//
+//         Set<Story> stories = new HashSet<>();
+//        Set<Set<Story>> followingProfileIds = following.stream()
+//                .map(user -> {
+//                    try {
+//                        return profileRepo.findByUser(user).getStory();
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                })
+//                .collect(Collectors.toSet());
+//
+//        return followingProfileIds;
+//    }
+
     @Override
-//    @Cache(usage = "")
-    public Set<List<Story>> getStoriesOfFollowersAndFollowing(UUID profile_id) throws Exception {
+    public List<Story> getStoriesOfProfile(UUID profile_id) throws Exception {
+        return storyRepository.findByProfileId(profile_id);
+    }
 
-        Profile profile = profileService.getProfile(profile_id);
-        Set<User> following = profile.getFollowing();
+    public Set<ProfileStoriesDto> getStoriesOfFollowersAndFollowing(UUID profileId) throws Exception {
+        Profile profile = profileService.getProfile(profileId);
+        Set<User> following = new HashSet<>(profile.getFollowing());
         Set<User> followers = profile.getFollowers();
-         following.addAll(followers);
 
-         List<Story> stories = new ArrayList<>();
-        Set<List<Story>> followingProfileIds = following.stream()
+        following.addAll(followers);
+        following.add(profile.getUser());
+
+        return following.stream()
                 .map(user -> {
                     try {
-                        return profileRepo.findByUser(user).getStory();
+                        Profile userProfile = profileRepo.findByUser(user);
+                        List<Story> stories = userProfile.getStory();
+                        if (stories == null || stories.isEmpty()) return null;
+
+                        return new ProfileStoriesDto(
+                                userProfile.getProfile_id(),
+                                userProfile.getUsername(),
+                                stories.stream()
+                                        .sorted(Comparator.comparing(Story::getCreatedAt).reversed())
+                                        .collect(Collectors.toList())
+                        );
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-
-        return followingProfileIds;
     }
+
 }

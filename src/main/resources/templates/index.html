@@ -38,13 +38,19 @@
             animation: fade-in 0.25s ease-out;
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
     </style>
 </head>
 <body class="bg-gray-100">
 <!-- Navigation -->
 <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50 px-4 py-3">
     <div class="flex items-center justify-between max-w-7xl mx-auto">
-        <img th:src="@{/images/logo.jpg}" alt="logo" width="50" height="50" srcset="">
+        <img th:src="@{/images/logo1.jpg}" alt="logo" width="50" height="50" srcset="">
 
         <!-- Search Bar - Hidden on mobile -->
         <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
@@ -80,6 +86,7 @@
             </button>
         </div>
     </div>
+    </div>
 </nav>
 
 <!-- Stories Section - Mobile/Tablet -->
@@ -98,13 +105,13 @@
         </div>
 
         <div th:each="story : ${storyList}" class="flex-shrink-0 text-center w-16">
-            <div th:data-story-id="${story.storyId}"
+            <div th:data-story-id="${story.profileId}"
                  onclick="openStoryPopup(this)"
                  class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 cursor-pointer">
                 <img th:src="@{/api/v1/image/{id}(id=${story.getProfileId()})}" alt="Story"
                      class="w-full h-full rounded-full object-cover">
             </div>
-            <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.author}"></p>
+            <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.username}"></p>
         </div>
 
     </div>
@@ -185,13 +192,13 @@
                 </div>
 
                 <div th:each="story : ${storyList}" class="flex-shrink-0 text-center w-16">
-                    <div th:data-story-id="${story.storyId}"
+                    <div th:data-story-id="${story.profileId}"
                          onclick="openStoryPopup(this)"
                          class="w-16 h-16 rounded-full border-2 border-blue-500 p-1 cursor-pointer">
                         <img th:src="@{/api/v1/image/{id}(id=${story.getProfileId()})}" alt="Story"
                              class="w-full h-full rounded-full object-cover">
                     </div>
-                    <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.author}"></p>
+                    <p class="text-xs mt-1 text-gray-600 truncate w-full" th:text="${story.username}"></p>
                 </div>
 
 
@@ -268,12 +275,32 @@
                         </div>
                     </div>
                 </div>
-                <div id="postCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div id="postCarousel" class="carousel slide" data-bs-interval="false">
                     <div class="carousel-inner">
                         <div th:each="url, iterStat : ${post.mediaUrls}"
                              th:classappend="${iterStat.index == 0} ? 'active' : ''"
                              class="carousel-item p-3">
-                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image"/>
+                            <!--                            <img th:src="${url}" class="d-block w-100 h-60 rounded-lg object-cover" alt="Post image"/>-->
+                            <!-- Image -->
+                            <img th:if="${url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')}"
+                                 th:src="${url}"
+                                 class="d-block w-100 h-60 rounded-lg object-cover"
+                                 alt="Post image"/>
+
+                            <!-- Video -->
+                            <video th:if="${url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg')}"
+                                   th:src="${url}"
+                                   class="d-block w-100 h-60 rounded-lg object-cover"
+                                   controls
+                                   preload="metadata">
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <!-- Fallback -->
+                            <span th:if="${!(url.endsWith('jpg') or url.endsWith('jpeg') or url.endsWith('png') or url.endsWith('gif')
+                     or url.endsWith('mp4') or url.endsWith('webm') or url.endsWith('ogg'))}">
+        Unsupported media type
+    </span>
                         </div>
                     </div>
                     <button th:if="${post.mediaUrls.size() > 1}" class="carousel-control-prev" type="button"
@@ -297,9 +324,9 @@
                            onclick="expandCaption(event, this)" class="text-blue-600 hover:underline ml-1">See more</a>
                     </p>
                     <div class="flex items-center gap-6 mb-3">
-                        <button onclick="toggleLikeMain(this)"
+                        <button th:attr="onclick=|toggleLikeMain(this, '${post.post_id}')|"
                                 class="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors">
-                            <i class="far fa-heart text-lg"></i>
+                            <i th:classappend="${post.likedByCurrentUser} ? 'fas fa-heart text-lg text-red-500' : 'far fa-heart text-lg'"></i>
                             <span class="text-sm" th:text="${post.getLiked().size()}"></span>
                         </button>
                         <button th:attr="onclick=|toggleComments('comments${post.post_id}')|"
@@ -310,6 +337,10 @@
                         <button class="flex items-center gap-2 text-gray-600 hover:text-green-500 transition-colors">
                             <i class="far fa-share-square text-lg"></i>
                             <span class="text-sm">Share</span>
+                        </button>
+                        <button th:attr="onclick=|toggleSaveMain(this, '${post.post_id}')|"
+                                class="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition-colors ml-auto">
+                            <i th:classappend="${post.savedByCurrentUser} ? 'fas fa-bookmark text-lg text-yellow-500' : 'far fa-bookmark text-lg'"></i>
                         </button>
                     </div>
                     <div th:id="'comments' + ${post.post_id}" class="hidden border-t border-gray-100 pt-3">
@@ -546,7 +577,7 @@
     </div>
 
     <!-- Caption -->
-    <textarea name="caption" placeholder="Say something..." rows="3"
+    <textarea id="story_caption" name="caption" placeholder="Say something..." rows="3"
               class="w-full mt-4 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 resize-none"></textarea>
 
     <!-- Submit -->
@@ -568,14 +599,14 @@
         <!-- Story Content -->
         <div id="storyContent" class="w-full h-full relative flex flex-col gap-4">
             <!-- User Info -->
-            <div class="flex items-center gap-3">
-                <a th:href="@{/api/v1/profile/{id}(id=${profile.profile_id})}">
-                    <img th:src="@{/api/v1/image/{id}(id=${profile.profile_id})}"
+            <div id="user_content" class="flex items-center gap-3">
+                <a id="storyUserLink" th:href="@{/api/v1/profile/{id}(id=${profile.profile_id})}">
+                    <img id="storyUserImage" th:src="@{/api/v1/image/{id}(id=${profile.profile_id})}"
                          alt="User"
                          class="w-12 h-12 rounded-full object-cover border border-gray-300">
                 </a>
                 <div>
-                    <p class="font-semibold text-gray-900 text-lg" th:text="${profile.username}"></p>
+                    <p id="storyUsername" class="font-semibold text-gray-900 text-lg" th:text="${profile.username}"></p>
                     <p class="text-sm text-gray-500">Just now</p>
                 </div>
             </div>
@@ -633,6 +664,13 @@
             Post
         </button>
 
+    </div>
+</div>
+
+<div id="loader" style="display:none; text-align:center; margin-top:10px;">
+    <div class="spinner"
+         style="border:4px solid #f3f3f3; border-top:4px solid #3498db; border-radius:50%;
+                width:30px; height:30px; animation:spin 1s linear infinite; margin:auto;">
     </div>
 </div>
 
@@ -765,39 +803,52 @@
         comments.classList.toggle('hidden');
     }
 
-    function toggleLikeMain(button) {
+    function toggleLikeMain(button, post_id) {
         const icon = button.querySelector('i');
         const count = button.querySelector('span');
         const currentCount = parseInt(count.textContent);
 
-        const post_id = $('#post_id').val();
         const token = $('meta[name="_csrf"]').attr('content');
         const header = $('meta[name="_csrf_header"]').attr('content');
-        $.ajax({
-            url: `/api/v1/like/${post_id}`,
-            method: 'POST',
-            contentType: false,
-            processData: false,
-            beforeSend: function (xhr) {
-                if (token && header) {
-                    xhr.setRequestHeader(header, token);
-                }
-            },
-            success: function (response) {
-            },
-            error: function (response) {
-            }
-        });
-
         if (icon.classList.contains('far')) {
+            // Like the post
+            $.ajax({
+                url: `/api/v1/like/${post_id}`,
+                method: 'POST',
+                contentType: false,
+                processData: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                },
+                error: function (response) {
+                }
+            });
             icon.classList.remove('far');
             icon.classList.add('fas');
             button.classList.add('text-red-500');
             button.classList.remove('text-gray-600');
             count.textContent = currentCount + 1;
-
-
         } else {
+            // Unlike the post
+            $.ajax({
+                url: `/api/v1/unlike/${post_id}`,
+                method: 'POST',
+                contentType: false,
+                processData: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                },
+                error: function (response) {
+                }
+            });
             icon.classList.remove('fas');
             icon.classList.add('far');
             button.classList.remove('text-red-500');
@@ -934,6 +985,7 @@
     $(document).ready(function () {
 
         $('#comment_send').on('click', function () {
+            alert("cliked comment")
 
             const post_id = $('#post_id').val();
             const comment_text = $('#comment_text').val();
@@ -1029,11 +1081,197 @@
         document.getElementById('storyPopup').classList.add('hidden');
     }
 
+    // function openStoryPopup(element) {
+    //     const storyId = element.getAttribute('data-story-id');
+    //     document.getElementById('storyPopup').classList.remove('hidden');
+    //     // $.ajax({
+    //     //     url: `/api/v1/me/${storyId}`,
+    //     //     method: 'GET',
+    //     //     processData: false,
+    //     //     contentType: false,
+    //     //     beforeSend: function (xhr) {
+    //     //         if (token && header) {
+    //     //             xhr.setRequestHeader(header, token);
+    //     //         }
+    //     //     },
+    //     //     success: function (response) {
+    //     //         console.log(response)
+    //     //     },
+    //     //     error: function () {
+    //     //         alert('something went wrong, please try Again later')
+    //     //     }
+    //     // })
+    //     mediaContainer.innerHTML = '';
+    //
+    //     $.ajax({
+    //         url: `/api/v1/me/${storyId}`,
+    //         method: 'GET',
+    //         processData: false,
+    //         contentType: false,
+    //         beforeSend: function (xhr) {
+    //             if (token && header) {
+    //                 xhr.setRequestHeader(header, token);
+    //             }
+    //         },
+    //         success: function (response) {
+    //             const mediaContainer = document.getElementById('mediaContainer');
+    //             const storyUsername = document.getElementById('storyUsername');
+    //             const storyUserImage = document.getElementById('storyUserImage');
+    //             const storyUserLink = document.getElementById('storyUserLink');
+    //             const storyCaption = document.getElementById('storyCaption');
+    //
+    //             mediaContainer.innerHTML = ''; // Clear previous content
+    //
+    //             if (!response || response.length === 0) {
+    //                 mediaContainer.innerHTML = '<p class="text-center text-gray-500">No stories available</p>';
+    //                 storyUsername.textContent = '';
+    //                 storyUserImage.src = '';
+    //                 storyUserLink.href = '#';
+    //                 storyCaption.textContent = '';
+    //                 return;
+    //             }
+    //
+    //             // Set profile info from first story (all stories belong to same profile)
+    //             const firstStory = response[0];
+    //             storyUsername.textContent = firstStory.author;
+    //             storyUserImage.src = `/api/v1/image/${firstStory.profileId}`; // Ensure API returns profileImage URL
+    //             storyUserLink.href = `/api/v1/profile/${firstStory.profileId}`;
+    //
+    //             // Build carousel
+    //             const carousel = document.createElement('div');
+    //             carousel.className = 'relative w-full h-full overflow-hidden';
+    //
+    //             response.forEach((story, index) => {
+    //                 const item = document.createElement('div');
+    //                 item.className = `absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === 0 ? 'opacity-100' : 'opacity-0'}`;
+    //
+    //                 // Check media type
+    //                 if (story.media.endsWith('.mp4')) {
+    //                     const video = document.createElement('video');
+    //                     video.src = story.media;
+    //                     video.controls = false;
+    //                     video.autoplay = true;
+    //                     video.loop = true;
+    //                     video.muted = true; // mute to allow autoplay in most browsers
+    //                     video.className = 'w-full h-full object-cover rounded-lg';
+    //                     item.appendChild(video);
+    //                 } else {
+    //                     const img = document.createElement('img');
+    //                     img.src = story.media;
+    //                     img.className = 'w-full h-full object-cover rounded-lg';
+    //                     item.appendChild(img);
+    //                 }
+    //
+    //                 carousel.appendChild(item);
+    //             });
+    //
+    //             mediaContainer.appendChild(carousel);
+    //
+    //             // Set initial caption
+    //             storyCaption.textContent = response[0].caption || '';
+    //
+    //             // Simple auto-sliding every 3s
+    //             let currentIndex = 0;
+    //             setInterval(() => {
+    //                 const items = carousel.children;
+    //                 items[currentIndex].classList.replace('opacity-100', 'opacity-0');
+    //                 currentIndex = (currentIndex + 1) % items.length;
+    //                 items[currentIndex].classList.replace('opacity-0', 'opacity-100');
+    //                 storyCaption.textContent = response[currentIndex].caption || '';
+    //             }, 3000);
+    //         },
+    //         error: function () {
+    //             alert('Something went wrong, please try again later');
+    //         }
+    //     });
+    //
+    // }
     function openStoryPopup(element) {
         const storyId = element.getAttribute('data-story-id');
-        document.getElementById('storyPopup').classList.remove('hidden');
+        const popup = document.getElementById('storyPopup');
+        const mediaContainer = document.getElementById('mediaContainer');
+        const storyUsername = document.getElementById('storyUsername');
+        const storyUserImage = document.getElementById('storyUserImage');
+        const storyUserLink = document.getElementById('storyUserLink');
+        const storyCaption = document.getElementById('storyCaption');
 
+        popup.classList.remove('hidden');
+        mediaContainer.innerHTML = ''; // Clear previous content
+
+        $.ajax({
+            url: `/api/v1/me/${storyId}`,
+            method: 'GET',
+            processData: false,
+            contentType: false,
+            beforeSend: function (xhr) {
+                if (token && header) {
+                    xhr.setRequestHeader(header, token);
+                }
+            },
+            success: function (response) {
+                if (!response || response.length === 0) {
+                    mediaContainer.innerHTML = '<p class="text-center text-gray-500">No stories available</p>';
+                    storyUsername.textContent = '';
+                    storyUserImage.src = '';
+                    storyUserLink.href = '#';
+                    storyCaption.textContent = '';
+                    return;
+                }
+
+                // Set profile info
+                const firstStory = response[0];
+                storyUsername.textContent = firstStory.author;
+                storyUserImage.src = `/api/v1/image/${firstStory.profileId}`; // Make sure API returns this
+                storyUserLink.href = `/api/v1/profile/${firstStory.profileId}`;
+
+                // Build carousel
+                const carousel = document.createElement('div');
+                carousel.className = 'relative w-full h-full overflow-hidden';
+
+                response.forEach((story, index) => {
+                    const item = document.createElement('div');
+                    item.className = `absolute top-0 left-0 w-full h-full transition-opacity duration-500 ${index === 0 ? 'opacity-100' : 'opacity-0'}`;
+
+                    if (story.media.endsWith('.mp4')) {
+                        const video = document.createElement('video');
+                        video.src = story.media;
+                        video.controls = false;
+                        video.autoplay = true;
+                        video.loop = true;
+                        video.muted = true;
+                        video.className = 'w-full h-full object-cover rounded-lg';
+                        item.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = story.media;
+                        img.className = 'w-full h-full object-cover rounded-lg';
+                        item.appendChild(img);
+                    }
+
+                    carousel.appendChild(item);
+                });
+
+                mediaContainer.appendChild(carousel);
+
+                // Set initial caption
+                storyCaption.textContent = response[0].caption || '';
+
+                // Auto-slide
+                let currentIndex = 0;
+                setInterval(() => {
+                    const items = carousel.children;
+                    items[currentIndex].classList.replace('opacity-100', 'opacity-0');
+                    currentIndex = (currentIndex + 1) % items.length;
+                    items[currentIndex].classList.replace('opacity-0', 'opacity-100');
+                    storyCaption.textContent = response[currentIndex].caption || '';
+                }, 3000);
+            },
+            error: function () {
+                alert('Something went wrong, please try again later');
+            }
+        });
     }
+
 
     $(document).ready(function () {
         $('#submitBtnPost').on('click', function () {
@@ -1069,8 +1307,9 @@
 
             const token = $('meta[name="_csrf"]').attr('content');
             const header = $('meta[name="_csrf_header"]').attr('content');
-
+            $("#loader").show();
             $.ajax({
+
                 url: '/api/v1/post',
                 method: 'POST',
                 data: formData,
@@ -1084,8 +1323,10 @@
                 success: function (response) {
                     alert('Post uploaded successfully!');
                     setTimeout(() => location.reload(), 500);
+                    $("#loader").hide();
                 },
                 error: function (xhr) {
+                    $("#loader").hide();
                     alert('Something went wrong: ' + (xhr.responseText || 'Please try again later.'));
                 }
             });
@@ -1093,8 +1334,7 @@
 
     });
 
-</script>
-<script>
+
     // Modal open/close
     const openModalBtn = document.getElementById('openModalBtn');
     const modalBackdrop = document.getElementById('modalBackdrop');
@@ -1201,6 +1441,54 @@
 
         if (files.length === 0) {
             clearMainPreview();
+
+            // Save/Unsave post functionality
+            function toggleSaveMain(button, post_id) {
+                const token = $('meta[name="_csrf"]').attr('content');
+                const header = $('meta[name="_csrf_header"]').attr('content');
+                const icon = button.querySelector('i');
+                if (icon.classList.contains('far')) {
+                    // Save the post
+                    $.ajax({
+                        url: `/api/v1/save/${post_id}`,
+                        method: 'POST',
+                        contentType: false,
+                        processData: false,
+                        beforeSend: function (xhr) {
+                            if (token && header) {
+                                xhr.setRequestHeader(header, token);
+                            }
+                        },
+                        success: function (response) {
+                        },
+                        error: function (response) {
+                        }
+                    });
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                    button.classList.add('text-yellow-500');
+                } else {
+                    // Unsave the post
+                    $.ajax({
+                        url: `/api/v1/unsave/${post_id}`,
+                        method: 'POST',
+                        contentType: false,
+                        processData: false,
+                        beforeSend: function (xhr) {
+                            if (token && header) {
+                                xhr.setRequestHeader(header, token);
+                            }
+                        },
+                        success: function (response) {
+                        },
+                        error: function (response) {
+                        }
+                    });
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    button.classList.remove('text-yellow-500');
+                }
+            }
         }
     }
 
@@ -1271,7 +1559,53 @@
 
     clearMainPreview();
 
-
+    function toggleSaveMain(button, post_id) {
+        const token = $('meta[name="_csrf"]').attr('content');
+        const header = $('meta[name="_csrf_header"]').attr('content');
+        const icon = button.querySelector('i');
+        if (icon.classList.contains('far')) {
+            // Save the post
+            $.ajax({
+                url: `/api/v1/save/${post_id}`,
+                method: 'POST',
+                contentType: false,
+                processData: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                },
+                error: function (response) {
+                }
+            });
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            button.classList.add('text-yellow-500');
+        } else {
+            // Unsave the post
+            $.ajax({
+                url: `/api/v1/unsave/${post_id}`,
+                method: 'POST',
+                contentType: false,
+                processData: false,
+                beforeSend: function (xhr) {
+                    if (token && header) {
+                        xhr.setRequestHeader(header, token);
+                    }
+                },
+                success: function (response) {
+                },
+                error: function (response) {
+                }
+            });
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            button.classList.remove('text-yellow-500');
+        }
+    }
 </script>
+
 </body>
 </html>

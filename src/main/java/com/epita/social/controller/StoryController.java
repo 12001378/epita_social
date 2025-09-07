@@ -3,6 +3,7 @@ package com.epita.social.controller;
 import com.epita.social.model.Profile;
 import com.epita.social.model.Story;
 import com.epita.social.model.User;
+import com.epita.social.payload.DTO.ProfileStoriesDto;
 import com.epita.social.repo.ProfileRepo;
 import com.epita.social.service.ProfileService;
 import com.epita.social.service.StoryService;
@@ -59,18 +60,28 @@ public class StoryController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @GetMapping("/me/{profileId}")
+    public ResponseEntity<List<Story>> getStory(OAuth2AuthenticationToken user, @PathVariable("profileId") String profileId ) throws Exception {
+//        var userDetails = user.getPrincipal().getAttributes();
+//        String email = userDetails.get("email").toString();
+//        User user_details = userService.findByEmail(email);
+//        Profile profile = profileRepo.findByUser(user_details);
+        return new ResponseEntity<>(storyService.getStoriesOfProfile(UUID.fromString(profileId)),HttpStatus.OK);
+    }
+
     @GetMapping("/list")
     public ResponseEntity<List<Story>> getAllStorys() throws Exception {
+
         return new ResponseEntity<>(storyService.getStories(), HttpStatus.OK);
     }
 
     @GetMapping("/stories")
-    public ResponseEntity<Set<List<Story>>> getAllStoriesToUser(OAuth2AuthenticationToken user) throws Exception {
+    public ResponseEntity<Set<ProfileStoriesDto>> getAllStoriesToUser(OAuth2AuthenticationToken user) throws Exception {
         var userDetails = user.getPrincipal().getAttributes();
         String email = userDetails.get("email").toString();
         User user_details = userService.findByEmail(email);
         Profile profile = profileRepo.findByUser(user_details);
-        Set<List<Story>> stories = storyService.getStoriesOfFollowersAndFollowing(profile.getProfile_id());
+        Set<ProfileStoriesDto> stories = storyService.getStoriesOfFollowersAndFollowing(profile.getProfile_id());
 
         return new ResponseEntity<>(stories, HttpStatus.OK);
     }

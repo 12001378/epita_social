@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface PostService {
+    void unsavePost(UUID post_id, UUID user_id) throws Exception;
     Post addPost(Post post, ProfileDTO profile , List<MultipartFile> file) throws Exception;
     void deletePost(UUID postId) throws Exception;
     Post getPostById(UUID postId) throws Exception;
@@ -21,5 +22,6 @@ public interface PostService {
     void AddCommentLike(UUID postId,UUID comment_id) throws Exception;
     void savePost(UUID post_id,UUID user_id) throws Exception;
     List<Post> getFeed(OAuth2AuthenticationToken token) throws Exception;
+    void RemoveLike(UUID postID, UUID userId) throws Exception;
 
 }
